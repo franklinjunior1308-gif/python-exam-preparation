@@ -1,0 +1,8 @@
+{% extends 'base.html' %}{% block title %}GoTaxi — История{% endblock %}
+{% block content %}<div class="section-head"><h1>Мои заказы</h1><p>Тренировочная история заказов • очищается после перезапуска сервера</p></div>
+{% if not orders %}<div class="empty">Пока нет заказов. <a href="{{ url_for('home') }}">Создать первый →</a></div>{% endif %}
+<div class="order-list">{% for o in orders %}<article class="order-card"><div class="order-title"><div><span class="tag">{{ services[o.service][0] }}</span><strong>№{{ o.order_id }}</strong><small>{{ o.created_at }}</small></div><strong>{{ o.final_price }} сом</strong></div>
+<p>{{ o.origin }} → {{ o.destination }}</p><div class="details">{{ o.distance_km }} км · Скидка {{ o.discount }} сом · Бонусы {{ o.bonuses_used }} · <b>{{ o.status }}</b></div>
+{% if o.status == 'создан' %}<form method="post" action="{{ url_for('complete', order_id=o.order_id) }}"><button class="btn small" type="submit">Отметить выполненным (демо)</button></form>
+{% elif o.rating is none %}<form method="post" action="{{ url_for('rate', order_id=o.order_id) }}" class="rate-form"><label>Оценка <select name="rating">{% for i in range(1,6) %}<option value="{{ i }}">{{ i }} / 5</option>{% endfor %}</select></label><button class="btn small" type="submit">Оценить</button></form>
+{% else %}<div class="details">Ваша оценка: {{ o.rating }} / 5 ★</div>{% endif %}</article>{% endfor %}</div>{% endblock %}

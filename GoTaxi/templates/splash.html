@@ -1,0 +1,12 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GoTaxi — Вперёд!</title><link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"></head>
+<body class="splash"><div class="splash-shade"></div><div class="splash-inner">
+  <div class="splash-eyebrow">ДОБРО ПОЖАЛОВАТЬ</div><h1>GO<span>TAXI</span><i>.</i></h1>
+  <p>Такси, доставка, грузоперевозки и поездки с друзьями — в одном месте.</p>
+  <div class="splash-actions"><a class="btn" href="{{ url_for('home') }}">Открыть GoTaxi →</a>
+  {% if has_audio %}<button class="btn btn-outline" type="button" id="play-audio">♫ Включить музыку</button>{% endif %}</div>
+  <p class="muted">Демо-приложение • Бишкек</p>
+</div>
+{% if has_audio %}<audio id="intro" src="{{ url_for('static', filename='audio/intro.mp3') }}" preload="none"></audio>
+<script>document.getElementById('play-audio').addEventListener('click', async () => { const audio = document.getElementById('intro'); if (audio.paused) {try { await audio.play(); document.getElementById('play-audio').textContent='❚❚ Пауза'; } catch(e) { alert('Браузер не разрешил воспроизведение.'); }} else {audio.pause(); document.getElementById('play-audio').textContent='♫ Включить музыку';}});</script>{% endif %}
+</body></html>

@@ -1,0 +1,6 @@
+{% extends 'base.html' %}{% block title %}GoTaxi — Бонусы{% endblock %}
+{% block content %}<div class="section-head"><h1>Кошелёк и бонусы</h1><p>Безопасный учебный режим — настоящие банковские данные не принимаются</p></div>
+<div class="two-col"><div class="wallet-balance"><div class="eyebrow">ТВОЙ БАЛАНС</div><strong>{{ customer.bonuses }} <small>баллов</small></strong><p>Получай 5% бонусами за выполненные демо-заказы. Можно потратить до 50% стоимости следующего заказа после скидки.</p><div class="tag green">Промокод GO10 = −10%</div></div>
+<div class="form-card"><h2>Демо-способы оплаты</h2><p class="smallprint">Вводи только выдуманное название, например «Моя карта». Никогда не вводи номер карты, срок действия или CVV.</p>
+<form method="post"><label>Название для демонстрации<input name="card_label" maxlength="25" placeholder="Моя демо-карта" required></label><button type="submit" class="btn">Добавить название</button></form>
+<ul>{% for label in customer.cards %}<li>💳 {{ label }}</li>{% else %}<li>Пока нет демо-карт</li>{% endfor %}</ul></div></div>{% endblock %}

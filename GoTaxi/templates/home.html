@@ -1,0 +1,15 @@
+{% extends 'base.html' %}{% block title %}GoTaxi — Главная{% endblock %}
+{% block content %}
+<section class="hero"><div class="hero-text"><span class="eyebrow">СЕРВИС ГОРОДА • ДЕМО</span><h1>Твой город.<br><span>Твои маршруты.</span></h1>
+<p>Больше чем такси. Добирайся, отправляй посылки и планируй поездки — с бонусами на каждом шаге.</p>
+<a class="btn" href="{{ url_for('book', service='taxi') }}">Заказать такси →</a></div>
+<div class="hero-photo" role="img" aria-label="Жёлтое такси и человек с телефоном"></div></section>
+<section class="ratebar"><div><div class="label">ТАРИФ СЕЙЧАС</div><strong>{{ fares.level(current_hour)[0] }}</strong><small>По учебному расписанию, не в реальном времени</small></div>
+<div><div class="label">СКИДКА ПО ПРОМОКОДУ</div><strong>GO10 · −10%</strong><small>Для демо-заказов</small></div><div><div class="label">БОНУСНЫЙ БАЛАНС</div><strong>{{ customer.bonuses }} баллов</strong><small>1 балл = 1 сом (демо)</small></div></section>
+<div class="section-head"><h2>Что закажем сегодня?</h2><p>Выбери подходящую услугу</p></div>
+<div class="service-grid">{% for key, details in services.items() %}<a class="service-card" href="{{ url_for('book', service=key) }}"><span class="service-emoji">{{ details[3] }}</span><h3>{{ details[0] }}</h3><span>Заказать →</span></a>{% endfor %}</div>
+<div class="section-head"><h2>Когда ехать выгоднее?</h2><p>Пример тарификации по времени</p></div>
+<div class="hours"><div><b>00:00–07:00</b><span class="tag green">Дешевле ×0.8</span></div><div><b>07:00–10:00</b><span class="tag red">Дороже ×1.4</span></div><div><b>10:00–17:00</b><span class="tag">Обычно ×1.0</span></div><div><b>17:00–21:00</b><span class="tag red">Дороже ×1.4</span></div><div><b>21:00–00:00</b><span class="tag">Обычно ×1.0</span></div></div>
+<div class="section-head"><h2>Куда сходить?</h2><p>Пример ресторанов и развлечений — без геолокации</p></div>
+<div class="places-teaser"><div><span class="service-emoji">🍜</span><h3>Рестораны</h3><p>Подбери место и закажи такси</p></div><div><span class="service-emoji">🎬</span><h3>Кино</h3><p>Доберись до кинотеатра</p></div><a class="btn small" href="{{ url_for('places') }}">Посмотреть места →</a></div>
+{% endblock %}
