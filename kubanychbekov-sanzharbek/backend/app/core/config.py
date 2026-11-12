@@ -14,6 +14,9 @@ class Settings(BaseSettings):
     access_token_minutes: int = 60
     cors_origins: str = "http://localhost:3000"
     upload_dir: str = "./uploads"
+    # SEC-03: this many failed sign-ins for one e-mail lock it for the window
+    login_max_failures: int = 5
+    login_window_minutes: int = 15
 
 
 @lru_cache

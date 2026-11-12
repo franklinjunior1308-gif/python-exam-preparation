@@ -36,9 +36,9 @@ Status of work in progress. Nothing is marked done unless it works end to end.
 ## Not implemented yet (do not treat as done)
 - **Web administration screens** for staff/roles, categories and technician skills/availability (the
   working-hours and holiday screens exist); an SLA report page beyond the dashboard totals.
-- **Backend**: login rate limiting (SEC-03), request-ID structured logging (SEC-08), user/role management
-  API (ORG-04, AUTH-05), live updates over WebSocket/SSE (API-06). Technician skills/availability editing
-  through the API is in progress.
+- **Backend**: user/role management API (ORG-04, AUTH-05), live updates over WebSocket/SSE (API-06).
+  Login lockout (5 failures per e-mail in 15 minutes) is per e-mail, not per address, so someone who knows an
+  e-mail can pause that account for up to 15 minutes; there is no CAPTCHA or per-IP limit.
 - **Android**: live updates; completion does not yet verify materials (LIFE-05 "materials correctly
   accounted").
 - **Verification**: no browser/E2E tests for the web; no instrumented tests for Android.

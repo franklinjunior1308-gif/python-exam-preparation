@@ -8,16 +8,43 @@ from app.api.deps import AuthDep, DbDep
 from app.core.config import get_settings
 from app.core.errors import AppError
 from app.core.security import create_access_token, verify_password
-from app.models import Organization, OrganizationMembership, User, UserSession
+from app.models import AuditEvent, Organization, OrganizationMembership, User, UserSession
 from app.schemas.auth import LoginIn, MembershipOut, MeOut, TokenOut
 from app.services.audit import record_audit
 
 router = APIRouter(tags=["auth"])
 
 
+def _refuse_when_locked(db: DbDep, email: str) -> None:
+    """SEC-03: too many failed attempts for one e-mail pause sign-in, even with the right password.
+
+    Failures are the `auth.login_failed` audit rows, so the count is shared by all workers.
+    """
+    settings = get_settings()
+    window = timedelta(minutes=settings.login_window_minutes)
+    since = datetime.now(UTC) - window
+    failures = db.scalars(
+        select(AuditEvent.created_at)
+        .where(
+            AuditEvent.action == "auth.login_failed",
+            AuditEvent.after["email"].astext == email,
+            AuditEvent.created_at >= since,
+        )
+        .order_by(AuditEvent.created_at)
+    ).all()
+    if len(failures) >= settings.login_max_failures:
+        retry = max(1, int((failures[0] + window - datetime.now(UTC)).total_seconds()))
+        raise AppError(
+            429,
+            "too_many_attempts",
+            f"Too many failed sign-in attempts. Try again in {max(1, retry // 60 + 1)} minutes.",
+        )
+
+
 @router.post("/auth/login", response_model=TokenOut)
 def login(data: LoginIn, db: DbDep) -> TokenOut:
     email = data.email.strip().lower()
+    _refuse_when_locked(db, email)
     user = db.scalar(select(User).where(User.email == email))
 
     if user is None or not verify_password(user.password_hash, data.password):

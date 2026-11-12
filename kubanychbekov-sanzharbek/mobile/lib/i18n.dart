@@ -156,6 +156,7 @@ const Map<String, String> en = {
   'err.work_not_in_progress': 'Materials can be written off only while work is in progress.',
   'err.idempotency_conflict': 'This write-off was already recorded differently. Reload and check.',
   'err.item_not_found': 'Material not found.',
+  'err.too_many_attempts': 'Too many failed sign-in attempts. Wait a few minutes and try again.',
   'err.generic': 'The operation failed. Please try again.',
 };
 
@@ -313,6 +314,7 @@ const Map<String, String> ru = {
   'err.work_not_in_progress': 'Материалы списываются только пока работа выполняется.',
   'err.idempotency_conflict': 'Это списание уже записано иначе. Обновите и проверьте.',
   'err.item_not_found': 'Материал не найден.',
+  'err.too_many_attempts': 'Слишком много неудачных попыток входа. Подождите несколько минут.',
   'err.generic': 'Операция не удалась. Повторите попытку.',
 };
 

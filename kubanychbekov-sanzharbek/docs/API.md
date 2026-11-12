@@ -124,3 +124,10 @@ Replaces skills and weekly intervals as a whole. Skills are trimmed, lower-cased
 (Monday) to 6; intervals must end after they start and must not overlap on one day (`422`). `is_active` is optional.
 Other roles get `403`, another organization's technician `404`. The change is written to the audit feed
 (`technician.profile_updated`) and Smart Assign uses it immediately.
+
+### Request IDs and the login lockout (SEC-08, SEC-03)
+Every response has `X-Request-ID` (a caller-supplied value of 8-64 letters/digits/`._-` is kept, anything else is
+replaced) and error bodies carry `error.request_id`. The server writes one JSON log line per request
+(`request_id`, `method`, `path`, `status`, `duration_ms`); bodies, passwords and tokens are never logged.
+Five failed sign-ins for one e-mail within 15 minutes answer `429 too_many_attempts` (also for the correct password)
+until the oldest failure leaves the window. Limits: `LOGIN_MAX_FAILURES`, `LOGIN_WINDOW_MINUTES`.

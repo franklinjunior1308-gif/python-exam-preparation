@@ -2,6 +2,8 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from app.core.request_context import request_id_var
+
 
 class AppError(Exception):
     """Business error with an HTTP status and a stable machine-readable code (API-01)."""
@@ -17,6 +19,9 @@ def _body(code: str, message: str, details: object | None = None) -> dict[str, o
     error: dict[str, object] = {"code": code, "message": message}
     if details is not None:
         error["details"] = details
+    request_id = request_id_var.get()
+    if request_id:
+        error["request_id"] = request_id
     return {"error": error}
 
 
