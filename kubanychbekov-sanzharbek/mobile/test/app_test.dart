@@ -16,6 +16,7 @@ import 'package:fixflow_tech/i18n.dart';
 import 'package:fixflow_tech/main.dart';
 import 'package:fixflow_tech/models/models.dart';
 import 'package:fixflow_tech/state/app_state.dart';
+import 'package:fixflow_tech/ui/materials_screen.dart';
 
 Task sampleTask({int id = 28, String status = 'SCHEDULED', List<String>? actions}) => Task(
       assignmentId: 5,
@@ -189,6 +190,78 @@ void main() {
       await state.login('http://server.test', 'tech1.a@fixflow.test', 'pw');
       expect(await state.store.loadQueue(), isEmpty);
       expect(await state.store.loadTasks(), isEmpty);
+    });
+  });
+
+  group('materials and estimate (online only)', () {
+    test('money is formatted from whole tyiyn without floating point', () {
+      expect(formatKgs(0), '0.00 KGS');
+      expect(formatKgs(123456), '1 234.56 KGS');
+      expect(formatKgs(5), '0.05 KGS');
+      expect(formatKgs(100000000), '1 000 000.00 KGS');
+    });
+
+    test('quantity input accepts a comma, rejects zero, text and 4 decimals', () {
+      expect(parseQuantity('1,5'), '1.5');
+      expect(parseQuantity(' 2 '), '2');
+      expect(parseQuantity('0'), isNull);
+      expect(parseQuantity('-1'), isNull);
+      expect(parseQuantity('abc'), isNull);
+      expect(parseQuantity('1.2345'), isNull);
+    });
+
+    test('write-off sends the item, quantity and the same command id', () async {
+      final bodies = <Map<String, dynamic>>[];
+      final state = await buildState((r) async {
+        if (r.method == 'POST' && r.url.path.endsWith('/requests/28/materials')) {
+          bodies.add(jsonDecode(r.body) as Map<String, dynamic>);
+          return jsonResponse(201, {});
+        }
+        return jsonResponse(200, []);
+      });
+      await state.init();
+      await state.useMaterial(sampleTask(), 7, '2.5', 'cmd-material-1');
+      expect(bodies, [
+        {'item_id': 7, 'quantity': '2.5', 'client_command_id': 'cmd-material-1'},
+      ]);
+    });
+
+    test('insufficient stock from the server is passed on with its code', () async {
+      final state = await buildState((r) async {
+        if (r.method == 'POST') {
+          return jsonResponse(409, {
+            'error': {'code': 'insufficient_stock', 'message': 'Not enough'},
+          });
+        }
+        return jsonResponse(200, []);
+      });
+      await state.init();
+      await expectLater(
+        state.useMaterial(sampleTask(), 7, '99', 'cmd-material-2'),
+        throwsA(isA<ApiException>().having((e) => e.code, 'code', 'insufficient_stock')),
+      );
+      expect(trError('en', 'insufficient_stock'), isNot(tr('en', 'err.generic')));
+      expect(trError('ru', 'work_not_in_progress'), isNot(tr('ru', 'err.generic')));
+    });
+
+    test('only an APPROVED estimate total is returned', () async {
+      final state = await buildState((r) async {
+        if (r.url.path.endsWith('/requests/28/estimates')) {
+          return jsonResponse(200, [
+            {'status': 'AWAITING_APPROVAL', 'total_cents': 111},
+            {'status': 'APPROVED', 'total_cents': 450000},
+          ]);
+        }
+        return jsonResponse(200, []);
+      });
+      await state.init();
+      expect(await state.approvedEstimateCents(28), 450000);
+    });
+
+    test('no approved estimate gives null', () async {
+      final state = await buildState((r) async => jsonResponse(200, []));
+      await state.init();
+      expect(await state.approvedEstimateCents(28), isNull);
     });
   });
 

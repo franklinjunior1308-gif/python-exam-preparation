@@ -337,3 +337,71 @@ class RemoteAttachment {
         createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
       );
 }
+
+class InventoryItem {
+  InventoryItem({
+    required this.id,
+    required this.code,
+    required this.name,
+    required this.unit,
+    required this.stock,
+    required this.unitPriceCents,
+    required this.lowStock,
+  });
+
+  final int id;
+  final String code;
+  final String name;
+  final String unit;
+  final double stock;
+  final int unitPriceCents;
+  final bool lowStock;
+
+  factory InventoryItem.fromJson(Map<String, dynamic> json) => InventoryItem(
+        id: json['id'] as int,
+        code: json['code'] as String,
+        name: json['name'] as String,
+        unit: json['unit'] as String,
+        stock: double.parse('${json['stock']}'),
+        unitPriceCents: json['unit_price_cents'] as int,
+        lowStock: json['low_stock'] as bool? ?? false,
+      );
+}
+
+/// Material already written off on a request (server record, price is a snapshot).
+class MaterialUse {
+  MaterialUse({
+    required this.id,
+    required this.itemName,
+    required this.quantity,
+    required this.totalCents,
+    required this.createdAt,
+  });
+
+  final int id;
+  final String itemName;
+  final double quantity;
+  final int totalCents;
+  final DateTime createdAt;
+
+  factory MaterialUse.fromJson(Map<String, dynamic> json) => MaterialUse(
+        id: json['id'] as int,
+        itemName: json['item_name'] as String? ?? '',
+        quantity: double.parse('${json['quantity']}'),
+        totalCents: json['total_cents'] as int? ?? 0,
+        createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
+      );
+}
+
+/// Money is kept in whole tyiyn (1 KGS = 100 tyiyn); never a double (DATA-04).
+String formatKgs(int cents) {
+  final whole = cents ~/ 100;
+  final rest = (cents % 100).toString().padLeft(2, '0');
+  final digits = whole.toString();
+  final grouped = StringBuffer();
+  for (var i = 0; i < digits.length; i++) {
+    if (i > 0 && (digits.length - i) % 3 == 0) grouped.write(' ');
+    grouped.write(digits[i]);
+  }
+  return '$grouped.$rest KGS';
+}

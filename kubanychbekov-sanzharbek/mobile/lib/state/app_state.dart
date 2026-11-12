@@ -373,6 +373,36 @@ class AppState extends ChangeNotifier {
     return raw.map((e) => RemoteAttachment.fromJson(Map<String, dynamic>.from(e as Map))).toList();
   }
 
+  Future<List<InventoryItem>> loadInventory() async {
+    final raw = await api!.get('inventory') as List;
+    return raw.map((e) => InventoryItem.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+  }
+
+  Future<List<MaterialUse>> loadUsages(int requestId) async {
+    final raw = await api!.get('requests/$requestId/materials') as List;
+    return raw.map((e) => MaterialUse.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+  }
+
+  /// Total of the customer-approved estimate in tyiyn, or null when none is approved (EST-05).
+  Future<int?> approvedEstimateCents(int requestId) async {
+    final raw = await api!.get('requests/$requestId/estimates') as List;
+    for (final e in raw) {
+      final map = Map<String, dynamic>.from(e as Map);
+      if (map['status'] == 'APPROVED') return map['total_cents'] as int;
+    }
+    return null;
+  }
+
+  /// Writes material off a request. Online only (MOB-08); the command id makes a retry harmless.
+  Future<void> useMaterial(Task task, int itemId, String quantity, String commandId) =>
+      _online((api) async {
+        await api.post('requests/${task.requestId}/materials', body: {
+          'item_id': itemId,
+          'quantity': quantity,
+          'client_command_id': commandId,
+        });
+      });
+
   Future<void> loadNotifications() async {
     final client = api;
     if (client == null || session?.orgId == null) return;

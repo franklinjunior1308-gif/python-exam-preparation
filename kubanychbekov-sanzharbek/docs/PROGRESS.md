@@ -164,7 +164,10 @@ to `~/.gradle/wrapper/dists/gradle-9.5.0-all/aca6g93cdtcf0oapcfka748qh/`, `tar -
 1. TWO SESSIONS WORK IN PARALLEL (fork 1 and fork 2, same repo): fork 2 owns `web/` and the extra seed; fork 1 owns
    `mobile/`, `docs/VERIFICATION.md` and the backend gaps (feedback, audit feed, login rate limit, request-ID logs,
    live updates). Never `git add -A`; commit only your own paths.
-2. Fork 1 next: Android materials screen + estimate total on the task (then rebuild the APK), then backend gaps.
+2. DONE 2026-11-13 (fork 1): Android materials screen (`mobile/lib/ui/materials_screen.dart`, online-only write-off with
+   stable command id, insufficient-stock error mapped en/ru) + approved estimate total on the task details; 28 Flutter
+   tests pass, `flutter analyze` clean; APK rebuild started. Fork 1 next: backend gaps (feedback, audit feed, login rate
+   limit, request-ID logs, live updates, LIFE-05), then `scripts/smoke.sh`, `docs/AI_USAGE.md`.
 3. After each module: `ruff`/`ty`, tests in Docker, commit locally, keep this file current.
 
 ## Submission (do not do early)

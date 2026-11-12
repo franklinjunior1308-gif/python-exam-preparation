@@ -8,6 +8,7 @@ import '../models/models.dart';
 import '../state/app_state.dart';
 import '../theme.dart';
 import 'completion_screen.dart';
+import 'materials_screen.dart';
 import 'widgets.dart';
 
 class TaskDetailScreen extends StatefulWidget {
@@ -24,12 +25,18 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   Future<List<RemoteNote>>? _notes;
   Future<List<RemoteAttachment>>? _photos;
   int? _loadedFor;
+  int? _estimate;
 
   void _reloadRemote(Task task) {
     final state = context.read<AppState>();
     _loadedFor = task.requestId;
     _notes = state.loadNotes(task.requestId);
     _photos = state.loadAttachments(task.requestId);
+    state.approvedEstimateCents(task.requestId).then((value) {
+      if (mounted) setState(() => _estimate = value);
+    }).catchError((Object _) {
+      // The estimate card is optional; offline or a refusal simply hides it.
+    });
   }
 
   Future<void> _run(Future<void> Function() action) async {
@@ -340,8 +347,28 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
               ),
             ),
           ]),
+          if (status == 'IN_PROGRESS') ...[
+            const SizedBox(height: 10),
+            OutlinedButton.icon(
+              onPressed: online
+                  ? () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => MaterialsScreen(assignmentId: task.assignmentId)))
+                  : null,
+              icon: const Icon(Icons.inventory_2_outlined),
+              label: Text(context.t('action.materials')),
+            ),
+          ],
           const SizedBox(height: 12),
         ],
+        if (_estimate != null)
+          FxCard(
+            child: Row(children: [
+              const Icon(Icons.request_quote_outlined, color: Fx.primary),
+              const SizedBox(width: 12),
+              Expanded(child: Text(context.t('detail.estimate'))),
+              Text(formatKgs(_estimate!), style: const TextStyle(fontWeight: FontWeight.w800)),
+            ]),
+          ),
         if (queued.isNotEmpty) ...[
           Text(context.t('detail.waiting'), style: const TextStyle(color: Fx.warn, fontWeight: FontWeight.w700)),
           const SizedBox(height: 6),
