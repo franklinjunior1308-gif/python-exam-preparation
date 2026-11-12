@@ -1,0 +1,39 @@
+# FixFlow local stack: db + backend. The `web` service is added when the web app exists.
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fixflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fixflow}
+      POSTGRES_DB: ${POSTGRES_DB:-fixflow}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-fixflow} -d ${POSTGRES_DB:-fixflow}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-fixflow}:${POSTGRES_PASSWORD:-fixflow}@db:5432/${POSTGRES_DB:-fixflow}
+      SECRET_KEY: ${SECRET_KEY:-dev-only-change-me}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      UPLOAD_DIR: /data/uploads
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - uploads:/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health/ready')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  db_data:
+  uploads:
