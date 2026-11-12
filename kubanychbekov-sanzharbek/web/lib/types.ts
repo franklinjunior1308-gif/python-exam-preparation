@@ -248,3 +248,13 @@ export type AssetSummary = {
   last_completed_at: string | null;
   next_planned: string | null;
 };
+
+export type AppNotification = {
+  id: number;
+  type: string;
+  request_id: number | null;
+  title: string;
+  body: string;
+  read_at: string | null;
+  created_at: string;
+};
