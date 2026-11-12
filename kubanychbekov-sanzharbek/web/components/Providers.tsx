@@ -45,7 +45,11 @@ export function Providers({ lang, children }: { lang: Lang; children: ReactNode 
     tError: (error) => {
       const key = error instanceof ApiError ? `err.${error.code}` : "err.generic";
       const resolved = (key in en ? key : "err.generic") as TKey;
-      return translate(lang, resolved);
+      const text = translate(lang, resolved);
+      // an unexplained failure carries the request id so support can find it in the logs (SEC-08)
+      return resolved === "err.generic" && error instanceof ApiError && error.requestId
+        ? `${text} (ID: ${error.requestId})`
+        : text;
     },
   };
 

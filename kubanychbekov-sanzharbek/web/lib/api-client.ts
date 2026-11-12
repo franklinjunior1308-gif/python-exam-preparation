@@ -6,6 +6,7 @@ export class ApiError extends Error {
     public code: string,
     message: string,
     public details?: { loc: (string | number)[]; msg: string }[],
+    public requestId?: string,
   ) {
     super(message);
   }
@@ -50,13 +51,14 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
   const payload = text ? (JSON.parse(text) as unknown) : null;
 
   if (!res.ok) {
-    const error = (payload as { error?: { code?: string; message?: string; details?: never } })
+    const error = (payload as { error?: { code?: string; message?: string; details?: never; request_id?: string } })
       ?.error;
     throw new ApiError(
       res.status,
       error?.code ?? "generic",
       error?.message ?? res.statusText,
       error?.details,
+      error?.request_id,
     );
   }
   return payload as T;
@@ -79,8 +81,8 @@ export async function apiUpload<T>(path: string, form: FormData): Promise<T> {
   const text = await res.text();
   const payload = text ? (JSON.parse(text) as unknown) : null;
   if (!res.ok) {
-    const error = (payload as { error?: { code?: string; message?: string } })?.error;
-    throw new ApiError(res.status, error?.code ?? "generic", error?.message ?? res.statusText);
+    const error = (payload as { error?: { code?: string; message?: string; request_id?: string } })?.error;
+    throw new ApiError(res.status, error?.code ?? "generic", error?.message ?? res.statusText, undefined, error?.request_id);
   }
   return payload as T;
 }

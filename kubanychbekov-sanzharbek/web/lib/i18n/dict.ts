@@ -154,6 +154,7 @@ export const en = {
   "action.REOPENED": "Request rework",
 
   "err.invalid_credentials": "Wrong email or password.",
+  "err.too_many_attempts": "Too many failed sign-in attempts. Please wait 15 minutes and try again.",
   "err.account_disabled": "This account is disabled.",
   "err.session_expired": "Your session has expired.",
   "err.not_a_member": "You do not have access to this organization.",
@@ -624,6 +625,7 @@ export const ru: Dict = {
   "action.REOPENED": "Запросить переделку",
 
   "err.invalid_credentials": "Неверный email или пароль.",
+  "err.too_many_attempts": "Слишком много неудачных попыток входа. Подождите 15 минут и повторите.",
   "err.account_disabled": "Эта учётная запись отключена.",
   "err.session_expired": "Сессия истекла.",
   "err.not_a_member": "У вас нет доступа к этой организации.",
