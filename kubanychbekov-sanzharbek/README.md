@@ -49,6 +49,18 @@ bun run dev                     # http://localhost:3000
 It talks to the API through its own `/bff` proxy (set `API_URL` if the API is not on
 `http://localhost:8000`). Sign in with a demo account below.
 
+Web screens by role (EN/RU switch in the top bar):
+
+| Screen | Path | Who |
+|---|---|---|
+| Dashboard, requests, request detail (history, estimates, photos, feedback) | `/app`, `/app/requests` | all (technicians see only their work on mobile) |
+| New request | `/app/requests/new` | customer |
+| Schedule and assignment (Smart Assign) | `/app/schedule` | dispatcher, admin |
+| SLA queue (on track / at risk / overdue) | `/app/overdue` | dispatcher, admin |
+| Inventory with low stock, maintenance plans, technicians | `/app/inventory`, `/app/maintenance`, `/app/technicians` | dispatcher, admin (admin edits) |
+| Working hours and holidays, audit log | `/app/settings`, `/app/audit` | admin |
+| Notifications | `/app/notifications` | all |
+
 ## Demo accounts (seeded, one shared **demo-only** password: `Demo-2345!`)
 
 | Role | Organization A ("AIT Facility") | Organization B ("Nord Service") |
