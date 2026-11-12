@@ -129,6 +129,31 @@ flutter build apk --debug
 If Gradle still hangs on a dependency download, run the build in the background and watch the log;
 the connection is slow (~0.5 MB/s) and some hosts stall - restart the build, caches are kept.
 
+## AFTER THE WINDOWS REBOOT (`netsh winsock reset`, done by the user) - do this first
+Why: `flutter build apk --debug` fails with `java.io.IOException: Unable to establish loopback connection`
+(`Pipe.open()` fails in the JDK although plain sockets work). Gradle is installed and extracted
+(`~/.gradle/wrapper/dists/gradle-9.5.0-all/...`), so only the loopback problem blocks the APK.
+```powershell
+# 1) start Docker Desktop, then bring the stack back (data volumes are kept; NEVER `down -v`)
+cd "C:\Users\ASUS ROG STRIX\fixflow\kubanychbekov-sanzharbek"
+docker compose up -d
+curl.exe http://localhost:8000/api/v1/health/ready          # expect {"status":"ok","database":"up"}
+# 2) check the Java loopback (expect: bind ok / pipe ok / selector ok)
+@'
+import java.nio.channels.*; import java.net.*;
+public class Loop { public static void main(String[] a) throws Exception {
+ try (ServerSocketChannel s = ServerSocketChannel.open()) { s.bind(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0)); System.out.println("bind ok"); }
+ Pipe.open(); System.out.println("pipe ok"); Selector.open(); System.out.println("selector ok"); } }
+'@ | Set-Content "$env:TEMP\Loop.java" -Encoding ascii
+& C:\dev\jdk17\bin\java.exe "$env:TEMP\Loop.java"
+# 3) build (env must be set in the same PowerShell)
+$env:JAVA_HOME="C:\dev\jdk17"; $env:ANDROID_HOME="C:\dev\android"; $env:ANDROID_SDK_ROOT="C:\dev\android"
+$env:Path="C:\dev\flutter\bin;C:\dev\jdk17\bin;C:\dev\android\platform-tools;"+$env:Path
+cd mobile; flutter build apk --debug
+```
+If the loopback test still fails: build the APK inside a Linux container instead (Docker image with
+Flutter + JDK 17 + Android SDK; mount `mobile/`), or ask the user about other network/security software.
+
 ## CURRENT NEXT STEP
 1. Finish the Gradle zip download (still running at last check), install it into Gradle's cache as above,
    run `flutter build apk --debug`, show the user the test results + APK path/size.
