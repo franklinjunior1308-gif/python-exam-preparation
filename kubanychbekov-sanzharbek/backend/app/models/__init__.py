@@ -11,6 +11,7 @@ from app.models.scheduling import (
     TechnicianProfile,
     TechnicianSkill,
 )
+from app.models.sla import Holiday, SlaEscalation, WorkingInterval
 from app.models.work import EvidenceFile, Notification, WorkNote
 
 __all__ = [
@@ -20,6 +21,9 @@ __all__ = [
     "Estimate",
     "EstimateLine",
     "EvidenceFile",
+    "Holiday",
+    "SlaEscalation",
+    "WorkingInterval",
     "InventoryItem",
     "MaterialUsage",
     "StockReplenishment",

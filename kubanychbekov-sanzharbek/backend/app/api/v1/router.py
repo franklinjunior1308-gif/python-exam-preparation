@@ -9,6 +9,7 @@ from app.api.v1 import (
     reports,
     requests,
     scheduling,
+    sla,
     work,
 )
 
@@ -22,3 +23,4 @@ api_router.include_router(scheduling.router)
 api_router.include_router(work.router)
 api_router.include_router(estimates.router)
 api_router.include_router(inventory.router)
+api_router.include_router(sla.router)

@@ -23,7 +23,7 @@ from app.models import (
     ServiceRequest,
     TechnicianProfile,
 )
-from app.schemas.request import RequestCreate, RequestOut
+from app.schemas.request import RequestCreate, RequestOut, TriageIn
 from app.services.audit import record_audit
 
 MAX_PAGE_SIZE = 100
@@ -189,6 +189,7 @@ def list_requests(
     q: str | None,
     sort_by: str,
     descending: bool,
+    unpaged: bool = False,
 ) -> tuple[list[ServiceRequest], int]:
     conditions = visible_conditions(ctx)
     if status:
@@ -219,11 +220,10 @@ def list_requests(
     total = db.scalar(select(func.count()).select_from(base.subquery())) or 0
     column = _SORT_COLUMNS.get(sort_by, ServiceRequest.created_at)
     ordering = column.desc() if descending else column.asc()
-    rows = db.scalars(
-        base.order_by(ordering, ServiceRequest.id.desc())
-        .limit(min(page_size, MAX_PAGE_SIZE))
-        .offset((page - 1) * page_size)
-    ).all()
+    ordered = base.order_by(ordering, ServiceRequest.id.desc())
+    if not unpaged:
+        ordered = ordered.limit(min(page_size, MAX_PAGE_SIZE)).offset((page - 1) * page_size)
+    rows = db.scalars(ordered).all()
     return list(rows), total
 
 
@@ -325,6 +325,46 @@ def transition_request(
         actor_user_id=ctx.user.id,
         before={"status": source.value},
         after={"status": target.value, "reason": reason},
+    )
+    db.commit()
+    db.refresh(req)
+    return req
+
+
+def update_triage(db: Session, ctx: OrgContext, request_id: int, data: TriageIn) -> ServiceRequest:
+    """Change priority/category with a reason; the SLA follows the new priority at once (SLA-05)."""
+    if ctx.role not in {Role.DISPATCHER, Role.ADMIN}:
+        raise AppError(403, "forbidden", "Only dispatchers and administrators change these fields")
+    req = get_request(db, ctx, request_id)
+    if req.status in {RequestStatus.CLOSED, RequestStatus.CANCELED}:
+        raise AppError(409, "request_closed", "A closed request cannot be changed")
+    before = {"priority": req.priority.value, "category_id": req.category_id}
+    if data.category_id is not None:
+        category = db.scalar(
+            select(ServiceCategory).where(
+                ServiceCategory.id == data.category_id,
+                ServiceCategory.organization_id == ctx.org_id,
+                ServiceCategory.is_active.is_(True),
+            )
+        )
+        if category is None:
+            raise AppError(404, "category_not_found", "Category not found")
+        req.category_id = data.category_id
+    if data.priority is not None:
+        req.priority = data.priority
+    record_audit(
+        db,
+        action="request.triage_changed",
+        object_type="service_request",
+        object_id=req.id,
+        organization_id=ctx.org_id,
+        actor_user_id=ctx.user.id,
+        before=before,
+        after={
+            "priority": req.priority.value,
+            "category_id": req.category_id,
+            "reason": data.reason.strip(),
+        },
     )
     db.commit()
     db.refresh(req)

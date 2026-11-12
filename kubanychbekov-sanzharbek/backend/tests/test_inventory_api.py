@@ -48,30 +48,6 @@ def new_item(admin_client, code="FLT-1", stock="5", threshold="2", price=1050):
     return res.json()
 
 
-@pytest.fixture
-def admin(world, make_client, engine):
-    """An administrator of organization A (the base fixture only creates dispatchers/customers)."""
-    from sqlalchemy import text
-
-    with engine.begin() as conn:
-        user_id = conn.execute(
-            text(
-                "INSERT INTO users "
-                "(email, full_name, password_hash, is_active, created_at, updated_at) "
-                "SELECT 'admin.a@t.test', 'admin a', password_hash, true, now(), now() "
-                "FROM users WHERE email = 'dispatcher.a@t.test' RETURNING id"
-            )
-        ).scalar_one()
-        conn.execute(
-            text(
-                "INSERT INTO organization_memberships (organization_id, user_id, role, is_active, "
-                "created_at, updated_at) VALUES (:o, :u, 'admin', true, now(), now())"
-            ),
-            {"o": world["org_a"], "u": user_id},
-        )
-    return make_client("admin.a@t.test", world["org_a"])
-
-
 def test_admin_manages_items_and_stock_changes_are_recorded(world, admin):
     item = new_item(admin)
     assert Decimal(item["stock"]) == 5 and item["low_stock"] is False

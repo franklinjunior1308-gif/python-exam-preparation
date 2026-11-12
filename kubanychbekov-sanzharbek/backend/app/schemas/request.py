@@ -4,6 +4,7 @@ from typing import Self
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.domain.enums import Priority, RequestStatus
+from app.schemas.sla import SlaOut
 
 
 class RequestCreate(BaseModel):
@@ -41,6 +42,7 @@ class RequestOut(BaseModel):
     created_at: datetime
     updated_at: datetime
     allowed_actions: list[RequestStatus] = []
+    sla: SlaOut | None = None
 
 
 class RequestPage(BaseModel):
@@ -64,3 +66,17 @@ class HistoryOut(BaseModel):
     actor_user_id: int
     reason: str | None
     created_at: datetime
+
+
+class TriageIn(BaseModel):
+    """Dispatcher changes priority and/or category, with a mandatory reason (REQ-03)."""
+
+    priority: Priority | None = None
+    category_id: int | None = None
+    reason: str = Field(min_length=3, max_length=1000)
+
+    @model_validator(mode="after")
+    def _something_to_change(self) -> Self:
+        if self.priority is None and self.category_id is None:
+            raise ValueError("priority or category_id is required")
+        return self

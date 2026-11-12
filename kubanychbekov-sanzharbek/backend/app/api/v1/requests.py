@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Query
 from sqlalchemy import select
@@ -12,15 +12,19 @@ from app.schemas.request import (
     RequestOut,
     RequestPage,
     TransitionIn,
+    TriageIn,
 )
 from app.services import requests as service
+from app.services import sla as sla_service
 
 router = APIRouter(prefix="/requests", tags=["requests"])
 
 
 @router.post("", response_model=RequestOut, status_code=201)
 def create(data: RequestCreate, ctx: OrgDep, db: DbDep) -> RequestOut:
-    return service.to_out(service.create_request(db, ctx, data), ctx)
+    out = service.to_out(service.create_request(db, ctx, data), ctx)
+    sla_service.attach(db, ctx, [out])
+    return out
 
 
 @router.get("", response_model=RequestPage)
@@ -33,36 +37,49 @@ def list_(
     priority: Priority | None = None,
     category_id: int | None = None,
     property_id: int | None = None,
+    sla: Literal["ON_TRACK", "AT_RISK", "OVERDUE"] | None = None,
     q: Annotated[str | None, Query(max_length=200)] = None,
     sort_by: Annotated[str, Query(pattern="^(created_at|priority|id)$")] = "created_at",
     descending: bool = True,
 ) -> RequestPage:
-    rows, total = service.list_requests(
-        db,
-        ctx,
-        page=page,
-        page_size=page_size,
-        status=status,
-        priority=priority,
-        category_id=category_id,
-        property_id=property_id,
-        q=q,
-        sort_by=sort_by,
-        descending=descending,
-    )
+    def fetch(page_no: int, size: int, unpaged: bool = False):
+        return service.list_requests(
+            db,
+            ctx,
+            page=page_no,
+            page_size=size,
+            status=status,
+            priority=priority,
+            category_id=category_id,
+            property_id=property_id,
+            q=q,
+            sort_by=sort_by,
+            descending=descending,
+            unpaged=unpaged,
+        )
+
+    if sla is None:
+        rows, total = fetch(page, page_size)
+    else:
+        # the SLA state is computed in working time, not stored: filter first, then page
+        every, _ = fetch(1, 1, unpaged=True)
+        wanted = sla_service.filter_ids_by_state(db, ctx, sla, [r.id for r in every])
+        matching = [r for r in every if r.id in wanted]
+        total = len(matching)
+        first = (page - 1) * page_size
+        rows = matching[first : first + page_size]
     assigned = service.assigned_set(db, ctx, [r.id for r in rows])
-    return RequestPage(
-        items=[service.to_out(r, ctx, assigned) for r in rows],
-        total=total,
-        page=page,
-        page_size=page_size,
-    )
+    items = [service.to_out(r, ctx, assigned) for r in rows]
+    sla_service.attach(db, ctx, items)
+    return RequestPage(items=items, total=total, page=page, page_size=page_size)
 
 
 @router.get("/{request_id}", response_model=RequestOut)
 def detail(request_id: int, ctx: OrgDep, db: DbDep) -> RequestOut:
     req = service.get_request(db, ctx, request_id)
-    return service.to_out(req, ctx, service.assigned_set(db, ctx, [req.id]))
+    out = service.to_out(req, ctx, service.assigned_set(db, ctx, [req.id]))
+    sla_service.attach(db, ctx, [out])
+    return out
 
 
 @router.get("/{request_id}/history", response_model=list[HistoryOut])
@@ -82,4 +99,14 @@ def history(request_id: int, ctx: OrgDep, db: DbDep) -> list[RequestStatusHistor
 @router.post("/{request_id}/transitions", response_model=RequestOut)
 def transition(request_id: int, data: TransitionIn, ctx: OrgDep, db: DbDep) -> RequestOut:
     req = service.transition_request(db, ctx, request_id, data.to_status, data.reason)
-    return service.to_out(req, ctx, service.assigned_set(db, ctx, [req.id]))
+    out = service.to_out(req, ctx, service.assigned_set(db, ctx, [req.id]))
+    sla_service.attach(db, ctx, [out])
+    return out
+
+
+@router.patch("/{request_id}", response_model=RequestOut)
+def triage(request_id: int, data: TriageIn, ctx: OrgDep, db: DbDep) -> RequestOut:
+    req = service.update_triage(db, ctx, request_id, data)
+    out = service.to_out(req, ctx, service.assigned_set(db, ctx, [req.id]))
+    sla_service.attach(db, ctx, [out])
+    return out
