@@ -75,6 +75,7 @@ export function AttachmentsPanel({ request }: { request: ServiceRequest }) {
           <input
             ref={input}
             id="photo-input"
+            aria-label={t("photos.add")}
             type="file"
             accept={ACCEPT}
             hidden
