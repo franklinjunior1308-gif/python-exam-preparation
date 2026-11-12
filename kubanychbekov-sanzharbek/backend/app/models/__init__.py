@@ -2,6 +2,7 @@ from app.models.audit import AuditEvent
 from app.models.catalog import Asset, Property, ServiceCategory
 from app.models.estimate import Estimate, EstimateLine
 from app.models.inventory import InventoryItem, MaterialUsage, StockReplenishment
+from app.models.maintenance import MaintenancePlan
 from app.models.org import Organization, OrganizationMembership, User, UserSession
 from app.models.request import RequestStatusHistory, ServiceRequest
 from app.models.scheduling import (
@@ -22,6 +23,7 @@ __all__ = [
     "EstimateLine",
     "EvidenceFile",
     "Holiday",
+    "MaintenancePlan",
     "SlaEscalation",
     "WorkingInterval",
     "InventoryItem",

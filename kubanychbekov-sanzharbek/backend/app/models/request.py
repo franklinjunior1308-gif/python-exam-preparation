@@ -1,7 +1,8 @@
-from datetime import datetime
+from datetime import date, datetime
 
 from sqlalchemy import (
     CheckConstraint,
+    Date,
     DateTime,
     ForeignKey,
     ForeignKeyConstraint,
@@ -44,6 +45,8 @@ class ServiceRequest(TimestampMixin, Base):
             "desired_end IS NULL OR desired_start IS NULL OR desired_end > desired_start",
             name="ck_request_window",
         ),
+        # a plan creates at most one request per event date, enforced by the database (PM-03)
+        UniqueConstraint("plan_id", "plan_date", name="uq_request_plan_date"),
         Index("ix_requests_org_status", "organization_id", "status"),
         Index("ix_requests_org_created", "organization_id", "created_at"),
     )
@@ -62,6 +65,8 @@ class ServiceRequest(TimestampMixin, Base):
     desired_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     desired_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     created_by_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    plan_id: Mapped[int | None] = mapped_column(ForeignKey("maintenance_plans.id"), default=None)
+    plan_date: Mapped[date | None] = mapped_column(Date, default=None)
 
 
 class RequestStatusHistory(Base):
