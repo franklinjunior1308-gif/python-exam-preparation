@@ -887,6 +887,31 @@ dialog::backdrop {
   margin-top: 14px;
 }
 
+/* ---------- SLA and estimates ---------- */
+.sla-ON_TRACK { --c: #34d399; }
+.sla-AT_RISK { --c: #fbbf24; }
+.sla-OVERDUE { --c: #ff6b7a; }
+.est-DRAFT { --c: #94a3b8; }
+.est-AWAITING_APPROVAL { --c: #fbbf24; }
+.est-APPROVED { --c: #34d399; }
+.est-REJECTED { --c: #ff6b7a; }
+.est-SUPERSEDED { --c: #8b7bff; }
+.sla small {
+  white-space: nowrap;
+}
+.block {
+  display: block;
+}
+.paused {
+  color: var(--warn);
+}
+.line-box {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
 /* ---------- responsive ---------- */
 @media (max-width: 1100px) {
   .stats {

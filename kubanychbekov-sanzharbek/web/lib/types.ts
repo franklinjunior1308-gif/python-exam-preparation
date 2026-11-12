@@ -43,6 +43,65 @@ export type ServiceRequest = {
   created_at: string;
   updated_at: string;
   allowed_actions: RequestStatus[];
+  sla: Sla | null;
+};
+
+export type SlaState = "ON_TRACK" | "AT_RISK" | "OVERDUE";
+
+export type Sla = {
+  budget_minutes: number;
+  used_minutes: number;
+  remaining_minutes: number;
+  state: SlaState;
+  due_at: string | null;
+  paused: boolean;
+  finished: boolean;
+};
+
+export type Overdue = {
+  request_id: number;
+  title: string;
+  priority: Priority;
+  status: RequestStatus;
+  overdue_minutes: number;
+  escalated: boolean;
+};
+
+export const ESTIMATE_STATUSES = [
+  "DRAFT",
+  "AWAITING_APPROVAL",
+  "APPROVED",
+  "REJECTED",
+  "SUPERSEDED",
+] as const;
+export type EstimateStatus = (typeof ESTIMATE_STATUSES)[number];
+
+export type EstimateLine = {
+  id: number;
+  description: string;
+  quantity: string;
+  unit_price_cents: number;
+  line_total_cents: number;
+};
+
+export type Estimate = {
+  id: number;
+  request_id: number;
+  version: number;
+  status: EstimateStatus;
+  currency: string;
+  labor_minutes: number;
+  labor_rate_cents: number;
+  labor_cents: number;
+  materials_cents: number;
+  total_cents: number;
+  lines: EstimateLine[];
+  created_by_user_id: number;
+  submitted_at: string | null;
+  decided_by_user_id: number | null;
+  decided_at: string | null;
+  decision_reason: string | null;
+  created_at: string;
 };
 
 export type RequestPage = {

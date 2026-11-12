@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, type FormEvent, type ReactNode, useContext, useState } from "react";
 import { api } from "@/lib/api-client";
 import type { Me, Membership, Role } from "@/lib/types";
-import { CalendarIcon, HomeIcon, ListIcon, LogoMark, LogoutIcon, PlusIcon, SearchIcon } from "./icons";
+import { CalendarIcon, ClockIcon, HomeIcon, ListIcon, LogoMark, LogoutIcon, PlusIcon, SearchIcon } from "./icons";
 import { LangSwitch } from "./LangSwitch";
 import { useI18n } from "./Providers";
 
@@ -44,6 +44,12 @@ export function Shell({
       href: "/app/schedule",
       label: t("nav.schedule"),
       icon: <CalendarIcon />,
+      show: role === "dispatcher" || role === "admin",
+    },
+    {
+      href: "/app/overdue",
+      label: t("nav.overdue"),
+      icon: <ClockIcon />,
       show: role === "dispatcher" || role === "admin",
     },
   ].filter((item) => item.show);

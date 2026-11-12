@@ -7,6 +7,8 @@ import { ApiError, api } from "@/lib/api-client";
 import { formatDateTime, needsReason } from "@/lib/format";
 import type { Category, HistoryEntry, Property, RequestStatus, ServiceRequest } from "@/lib/types";
 import { AssignPanel } from "./AssignPanel";
+import { EstimatesPanel } from "./EstimatesPanel";
+import { SlaBadge } from "./SlaBadge";
 import { PriorityBadge, StatusBadge } from "./Badges";
 import { useI18n } from "./Providers";
 import { useSession } from "./Shell";
@@ -122,11 +124,16 @@ export function RequestDetail({ requestId }: { requestId: number }) {
             <dd>{formatDateTime(req.created_at, lang, membership.timezone)}</dd>
             <dt>{t("detail.updated")}</dt>
             <dd>{formatDateTime(req.updated_at, lang, membership.timezone)}</dd>
+            <dt>{t("sla.title")}</dt>
+            <dd>
+              <SlaBadge sla={req.sla} detailed />
+            </dd>
           </dl>
         </section>
 
         <div style={{ display: "grid", gap: 14, alignContent: "start" }}>
           <AssignPanel request={req} />
+          <EstimatesPanel request={req} />
           <section className="card">
             <h2>{t("detail.actions")}</h2>
             {req.allowed_actions.length === 0 ? (

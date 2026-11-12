@@ -14,6 +14,7 @@ import {
   STATUSES,
 } from "@/lib/types";
 import { PriorityBadge, StatusBadge } from "./Badges";
+import { SlaBadge } from "./SlaBadge";
 import { PlusIcon } from "./icons";
 import { useI18n } from "./Providers";
 import { useSession } from "./Shell";
@@ -34,6 +35,7 @@ export function RequestsView() {
   const priority = params.get("priority") ?? "";
   const categoryId = params.get("category") ?? "";
   const q = params.get("q") ?? "";
+  const sla = params.get("sla") ?? "";
   const sortBy = params.get("sort") ?? "created_at";
   const descending = params.get("dir") !== "asc";
 
@@ -67,7 +69,7 @@ export function RequestsView() {
   }
 
   const list = useQuery({
-    queryKey: ["requests", orgId, { page, pageSize, status, priority, categoryId, q, sortBy, descending }],
+    queryKey: ["requests", orgId, { page, pageSize, status, priority, categoryId, sla, q, sortBy, descending }],
     queryFn: () =>
       api<RequestPage>("requests", {
         query: {
@@ -76,6 +78,7 @@ export function RequestsView() {
           status,
           priority,
           category_id: categoryId,
+          sla,
           q,
           sort_by: sortBy,
           descending,
@@ -94,7 +97,7 @@ export function RequestsView() {
   const categoryName = new Map(categories.data?.map((c) => [c.id, c.name]));
   const propertyName = new Map(properties.data?.map((p) => [p.id, p.name]));
   const pages = list.data ? Math.max(1, Math.ceil(list.data.total / list.data.page_size)) : 1;
-  const filtered = Boolean(status || priority || categoryId || q);
+  const filtered = Boolean(status || priority || categoryId || sla || q);
 
   function sortState(column: string): "ascending" | "descending" | undefined {
     if (sortBy !== column) return undefined;
@@ -174,6 +177,17 @@ export function RequestsView() {
               ))}
             </select>
           </div>
+          <div className="field">
+            <label htmlFor="f-sla">{t("sla.filter")}</label>
+            <select id="f-sla" className="select" value={sla} onChange={(e) => update({ sla: e.target.value })}>
+              <option value="">{t("common.all")}</option>
+              {(["ON_TRACK", "AT_RISK", "OVERDUE"] as const).map((s) => (
+                <option key={s} value={s}>
+                  {t(`sla.${s}`)}
+                </option>
+              ))}
+            </select>
+          </div>
           {filtered && (
             <button type="button" className="btn btn-outline" onClick={clearFilters}>
               {t("req.clear")}
@@ -206,6 +220,7 @@ export function RequestsView() {
                   <th>{t("req.col.category")}</th>
                   <th aria-sort={sortState("priority")}>{sortHeader("priority", t("req.col.priority"))}</th>
                   <th>{t("req.col.status")}</th>
+                  <th>{t("req.col.sla")}</th>
                   <th aria-sort={sortState("created_at")}>{sortHeader("created_at", t("req.col.created"))}</th>
                 </tr>
               </thead>
@@ -223,6 +238,9 @@ export function RequestsView() {
                     </td>
                     <td>
                       <StatusBadge status={r.status} />
+                    </td>
+                    <td>
+                      <SlaBadge sla={r.sla} />
                     </td>
                     <td>{formatDateTime(r.created_at, lang, membership.timezone)}</td>
                   </tr>
