@@ -34,8 +34,17 @@ Status of work in progress. Nothing is marked done unless it works end to end.
   booking and tenant isolation.
 
 ## Not implemented yet (do not treat as done)
-- **Web administration screens** for staff/roles, categories and technician skills/availability (the
-  working-hours and holiday screens exist); an SLA report page beyond the dashboard totals.
+- **Web administration screens** for staff/roles and categories (the working-hours, holiday and technician
+  skills/availability screens exist); an SLA report page beyond the dashboard totals.
+- **Live updates** (API-06): the web refetches on a timer (notifications every 30 s) and on actions; there is no
+  push channel, so a change made elsewhere can take up to that long to appear.
+- **The APK has not been installed on a device or emulator** in the final check; the app code was exercised against
+  the real API by `mobile/test/live` and the widget tests. Install it before recording the video.
+- **Risk register (SEC-09):** (1) per-e-mail login lockout can be used to pause an account (see below), mitigation:
+  15-minute window, audit of failures, no per-IP limit yet; (2) the Android session token is in app-private storage,
+  not the keystore, mitigation: sandboxed storage, token revocable server-side; (3) plain HTTP is allowed for local
+  development, mitigation: used only on a local network, production would require HTTPS; (4) uploaded photos live on
+  a local volume without antivirus scanning, mitigation: content-type and image validation, authorized download only.
 - **Backend**: user/role management API (ORG-04, AUTH-05), live updates over WebSocket/SSE (API-06).
   Login lockout (5 failures per e-mail in 15 minutes) is per e-mail, not per address, so someone who knows an
   e-mail can pause that account for up to 15 minutes; there is no CAPTCHA or per-IP limit.

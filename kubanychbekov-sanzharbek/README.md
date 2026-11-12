@@ -6,13 +6,15 @@ Field-service management platform: **FastAPI + PostgreSQL** backend, **Next.js**
 dispatchers, administrators) and a **Flutter** Android app for technicians. All three share one
 database. Honest status of every requirement: [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
 
-## Status (work in progress)
+## Status
 
-Working end to end: sign-in with server sessions, organizations and roles, requests with the full
-lifecycle, technician scheduling with a database-level overlap guard, Smart Assign, notes, photos,
-work completion (note + photo), notifications, dashboard, EN/RU web UI, Android task list with an
-offline queue. **Not done yet:** estimates, inventory, SLA, preventive maintenance, live updates,
-admin screens. See the limitations document before relying on anything.
+Working end to end (verified, see [docs/VERIFICATION.md](docs/VERIFICATION.md)): sign-in with server sessions and
+login lockout, organizations and roles, requests with the full lifecycle, technician scheduling with a
+database-level overlap guard, **Smart Assign** (the original feature, [docs/PRODUCT_DECISIONS.md](docs/PRODUCT_DECISIONS.md)),
+notes, photos, estimates with approval, inventory with atomic write-off, SLA with working hours, preventive
+maintenance, notifications, customer feedback, audit log, EN/RU web UI, and an Android app with an offline queue.
+**Not done:** user/role management and category administration screens, live updates (WebSocket/SSE), an SLA
+report beyond the dashboard totals. Full, honest list: [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
 
 ## Requirements and verified versions
 
@@ -29,10 +31,13 @@ admin screens. See the limitations document before relying on anything.
 
 ```bash
 cp .env.example .env            # demo-only values
-docker compose up --build -d    # PostgreSQL + API, migrations run automatically
-docker compose run --rm backend python -m app.seed   # demo data (safe to repeat)
+docker compose up --build -d    # PostgreSQL + API + web, migrations run automatically
+docker compose run --rm backend python -m app.seed         # demo data (safe to repeat)
+docker compose run --rm backend python -m app.seed_extra   # plans, estimates, SLA and conflict cases (safe to repeat)
+./scripts/smoke.sh              # real HTTP lifecycle, a 409 double booking, tenant isolation
 ```
 
+- Web: http://localhost:3000 (the `web` service; the section below is for development without Docker)
 - API: http://localhost:8000 (OpenAPI at `/docs`), health: `/api/v1/health/live` and `/ready`
 - Ports can be changed with `API_PORT` in `.env`.
 - Reset the local demo environment (**destroys the local database and uploads**):
@@ -101,8 +106,11 @@ docker compose --profile test run --rm backend-tests
 # mobile
 (cd mobile && flutter pub get && dart format --output=none --set-exit-if-changed lib test && flutter analyze && flutter test)
 ```
+All of the above in one go: `./scripts/verify-all.sh` (on a machine where native Python wheels are blocked, run it as
+`BACKEND_TESTS_IN_DOCKER=1 ./scripts/verify-all.sh`: static checks on the host, tests in Docker).
 What was actually run and its results: [docs/VERIFICATION.md](docs/VERIFICATION.md).
 
 ## Documentation
 [Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Product decisions](docs/PRODUCT_DECISIONS.md) ·
-[Known limitations](docs/KNOWN_LIMITATIONS.md) · [Verification](docs/VERIFICATION.md)
+[Known limitations](docs/KNOWN_LIMITATIONS.md) · [Verification](docs/VERIFICATION.md) · [AI usage](docs/AI_USAGE.md) ·
+[Video script](docs/VIDEO_SCRIPT.md) · [Submission checklist](docs/SUBMISSION_CHECKLIST.md) · [Who owns what](docs/WORKSTREAMS.md)

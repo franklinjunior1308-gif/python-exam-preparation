@@ -1,6 +1,40 @@
 # Verification log
 
-What was actually run, and what happened. Updated as work progresses. Date: 2026-11-12.
+What was actually run, and what happened. Updated as work progresses. Sections below the first one are earlier
+runs, kept for history; the numbers in the first section are the current ones.
+
+## Final check, 2026-11-13 (Windows 11, Docker Desktop, PostgreSQL 17)
+
+**`BACKEND_TESTS_IN_DOCKER=1 ./scripts/verify-all.sh` -> `ALL CHECKS PASSED`** (exit 0). It ran, in order:
+
+| Step | Command | Result |
+|---|---|---|
+| Backend static | `uv sync --frozen`, `ruff check .`, `ruff format --check .`, `ty check .` | all clean (100 files formatted) |
+| Backend tests | `docker compose --profile test run --rm backend-tests` (real PostgreSQL) | **245 passed**, 0 failed, 1 deprecation warning from a dependency |
+| Web | `bun install --frozen-lockfile`, `lint`, `typecheck`, `test:ci`, `build` | all exit 0; **23 tests passed** |
+| Mobile | `flutter pub get`, `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze`, `flutter test` | clean; **28 passed** (2 live-backend tests are skipped without `FIXFLOW_API`) |
+| APK | `flutter build apk --debug` | built `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 268 742 bytes, SHA-256 `e0bd783215647002b4a6e7e5fddf3c81a1eaad5bb12f118b40bd95da04f42085` (a build output; it is not committed) |
+
+Why the Docker switch: on the author's PC Windows Smart App Control blocks `pydantic_core`, so app-importing tests
+cannot run on the host. Without the switch (`./scripts/verify-all.sh`) the same script runs `uv run pytest -q` on the
+host, which is the form the organizers use.
+
+**Clean start from nothing** (isolated Compose project with its own volumes and ports, so the working database was not
+touched): `API_PORT=18000 WEB_PORT=13000 docker compose -p fixflowclean up -d --build` -> `db`, `backend`, `web` healthy;
+migrations ran on start; `python -m app.seed` and `python -m app.seed_extra` filled the data; `GET /health/ready` ->
+`{"status":"ok","database":"up"}`; the web login page returned 200; `API_URL=http://localhost:18000 py scripts/smoke.py`
+-> `smoke: all checks passed` (lifecycle, double booking rejected with 409, other organization gets 404).
+
+**Smoke test** on the working stack (`scripts/smoke.py`) also passed, including after the login lockout was added.
+
+**By hand** (browser, built-in): inventory with two low-stock items, maintenance plans with last/next service,
+notifications, admin working hours, technician skill edit (saved, lowercased by the server, then restored), photo upload
+through the web proxy (270 bytes up, 270 bytes down), SLA totals 20 / 6 / 14, audit log, accessibility scan of 10 pages
+(one unlabeled file input found and fixed), login lockout (5 failures, then 429 `too_many_attempts`).
+
+**Not verified:** the APK has not yet been installed on an emulator or a phone in this check (the live integration test
+below exercised the same app code against the real API); no browser/E2E tests for the web; no multi-worker run
+(SEC-07); the demo video is not recorded.
 
 ## Backend (Docker, PostgreSQL 17)
 ```bash
@@ -37,7 +71,7 @@ Result: all four exit 0; 16 tests pass (translation parity EN/RU, time-zone conv
 ## Known gaps in verification
 - The host (Windows with Smart App Control) cannot import `pydantic_core`, so tests that import the
   app run in Docker. Cause and details: see `KNOWN_LIMITATIONS.md`.
-- No web component/E2E browser tests yet; no tests for the Android app (not built yet).
+- (Early note, now outdated: the Android app has since been built and tested; see the final check above.)
 
 ## Android (Flutter) - 2026-11-13
 - `flutter analyze` -> **No issues found**; `flutter test` -> **22 passed** (10 offline-queue/sync, 12 app/widget/i18n).

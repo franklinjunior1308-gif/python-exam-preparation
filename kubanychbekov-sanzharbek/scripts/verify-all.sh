@@ -4,8 +4,15 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 echo "== backend =="
-(cd backend && uv sync --frozen && uv run ruff check . && uv run ruff format --check . \
-  && uv run ty check . && uv run pytest -q)
+if [ "${BACKEND_TESTS_IN_DOCKER:-0}" = "1" ]; then
+  # For machines where native Python wheels are blocked (Windows Smart App Control): static checks run on the
+  # host, the test suite runs in the backend image against PostgreSQL.
+  (cd backend && uv sync --frozen && uv run ruff check . && uv run ruff format --check . && uv run ty check .)
+  docker compose --profile test run --rm backend-tests
+else
+  (cd backend && uv sync --frozen && uv run ruff check . && uv run ruff format --check . \
+    && uv run ty check . && uv run pytest -q)
+fi
 
 if [ -f web/package.json ]; then
   echo "== web =="
