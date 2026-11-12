@@ -38,3 +38,21 @@ Result: all four exit 0; 16 tests pass (translation parity EN/RU, time-zone conv
 - The host (Windows with Smart App Control) cannot import `pydantic_core`, so tests that import the
   app run in Docker. Cause and details: see `KNOWN_LIMITATIONS.md`.
 - No web component/E2E browser tests yet; no tests for the Android app (not built yet).
+
+## Android (Flutter) - 2026-11-13
+- `flutter analyze` -> **No issues found**; `flutter test` -> **22 passed** (10 offline-queue/sync, 12 app/widget/i18n).
+- `flutter build apk --debug` -> **built** `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 154.7 MB,
+  SHA-256 `AE569397F5A56CCD6175133B909C5E8462CFBD7C264EDFAC56D276B454B9C5BC`. `aapt2 dump badging`: package
+  `kg.fixflow.fixflow_tech`, versionName 0.1.0, minSdk 24, targetSdk 36, permission INTERNET, ABIs arm64-v8a,
+  armeabi-v7a, x86_64. The first build took ~25 min on a slow connection (NDK, Platform 35, CMake, Maven artifacts).
+  Not yet installed on a device or emulator.
+- **Live integration test** (real app code -> real FastAPI -> real PostgreSQL), `test/live/live_backend_test.dart`:
+  ```powershell
+  $env:FIXFLOW_API="http://localhost:8000"; cd mobile; flutter test test/live --timeout=120s
+  ```
+  Result: **2 passed**. It signs in as `tech2.a@fixflow.test`, loads the real task list into the local database, queues
+  an internal note, loses the server's first answer (phone "never heard back"), retries with the same command id and
+  checks that exactly **one** note exists on the server, uploads a PNG photo from the queue (multipart), checks the
+  local copy is removed, downloads the photo with the session (200) and without it (401), and checks that a
+  forbidden state change is refused. A wrong password gives `invalid_credentials` and stores nothing. Without
+  `FIXFLOW_API` the live tests are skipped, so the normal `flutter test` stays offline.

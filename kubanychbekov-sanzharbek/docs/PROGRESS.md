@@ -73,9 +73,14 @@ before then** (see "Submission" at the end).
   Gradle). Licenses were accepted by the user. `flutter config` points at these paths.
 - Gradle 9.5.0 is in `~/.gradle/wrapper/dists/gradle-9.5.0-all/aca6g93cdtcf0oapcfka748qh/gradle-9.5.0` (extracted
   with `tar`, marker `gradle-9.5.0-all.zip.ok` present).
-- **The APK was still building** (NDK r28c and Platform 35 installed by Gradle). A background `flutter build apk --debug` (log `$env:TEMP\apk-build6.txt`) was running,
-  at "Installing NDK (Side by side) 28.2 ... Downloading android-ndk-r28c-windows" ~14%; `~/.gradle/caches` ~880 MB.
-  Expected output: `mobile/build/app/outputs/flutter-apk/app-debug.apk`.
+- **APK BUILT (2026-11-13 00:00)**: `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 154.7 MB, SHA-256
+  `AE569397F5A56CCD6175133B909C5E8462CFBD7C264EDFAC56D276B454B9C5BC`; package `kg.fixflow.fixflow_tech`,
+  minSdk 24 / targetSdk 36, INTERNET permission, ABIs arm64-v8a/armeabi-v7a/x86_64 (`aapt2 dump badging`).
+  The Gradle build took ~25 min (NDK r28c, Platform 35, CMake installed automatically). The APK is git-ignored.
+  Not yet installed on a phone/emulator (no emulator image on this PC).
+- **Live integration test passes**: `FIXFLOW_API=http://localhost:8000 flutter test test/live` runs the real app
+  code against FastAPI + PostgreSQL (sign-in, tasks, offline note with a lost response -> exactly one note on the
+  server, photo multipart upload, authorized download, 401 without a session, refused state change).
 
 ### Gradle / APK problems met so far (and fixes)
 1. Gradle wrapper download of `gradle-9.5.0-all.zip` stalled at 0 MB (no stall detection) -> downloaded with a
@@ -92,7 +97,7 @@ before then** (see "Submission" at the end).
 6. Last resort: build in a Linux container (Flutter + JDK 17 + Android SDK image, mount `mobile/`).
 
 ## Remaining mandatory work, in priority order (SLA and preventive maintenance backends are DONE)
-1. **APK**: finish `flutter build apk --debug` (recipe below), record path/size in `VERIFICATION.md`.
+1. ~~APK~~ DONE (see "Android SDK / APK state"); rebuild after Android changes with the recipe below.
 2. ~~Seed completion~~ DONE (commit f5da98e): 3 plans/org (one generated), estimates approved/awaiting/rejected+v2,
    at-risk SLA request, conflict candidate. Verified through the API (6 AT_RISK, 14 OVERDUE).
 3. **Web screens** (all backend APIs exist; SLA badge/filter/overdue queue and estimates UI are DONE): inventory + low stock; maintenance plans + asset page (next/last service); admin screens
@@ -156,12 +161,10 @@ to `~/.gradle/wrapper/dists/gradle-9.5.0-all/aca6g93cdtcf0oapcfka748qh/`, `tar -
 `gradle-9.5.0-all.zip.ok`.
 
 ## CURRENT NEXT STEP (resume here)
-1. Check the APK build: `Get-Content "$env:TEMP\apk-build6.txt" -Tail 5` and
-   `Test-Path mobile\build\app\outputs\flutter-apk\app-debug.apk`. If there is no `java` process and no APK, run the
-   recipe above again. On success: add size/path + `flutter analyze/test` results to `VERIFICATION.md`, commit locally,
-   and show the user the test results and the APK.
-2. Then item 3: web inventory + low stock, maintenance plans + asset page, admin screens, notifications inbox; then
-   the Android materials screen.
+1. TWO SESSIONS WORK IN PARALLEL (fork 1 and fork 2, same repo): fork 2 owns `web/` and the extra seed; fork 1 owns
+   `mobile/`, `docs/VERIFICATION.md` and the backend gaps (feedback, audit feed, login rate limit, request-ID logs,
+   live updates). Never `git add -A`; commit only your own paths.
+2. Fork 1 next: Android materials screen + estimate total on the task (then rebuild the APK), then backend gaps.
 3. After each module: `ruff`/`ty`, tests in Docker, commit locally, keep this file current.
 
 ## Submission (do not do early)
