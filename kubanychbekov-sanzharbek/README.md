@@ -2,27 +2,95 @@
 
 > Demo video: TODO (YouTube link goes here before submission)
 
-Field-service management platform: Python/FastAPI + PostgreSQL backend, Next.js web, Flutter Android app.
+Field-service management platform: **FastAPI + PostgreSQL** backend, **Next.js** web app (customers,
+dispatchers, administrators) and a **Flutter** Android app for technicians. All three share one
+database. Honest status of every requirement: [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
 
-## Status
+## Status (work in progress)
 
-Early stage. See [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md) for what is and is not done.
+Working end to end: sign-in with server sessions, organizations and roles, requests with the full
+lifecycle, technician scheduling with a database-level overlap guard, Smart Assign, notes, photos,
+work completion (note + photo), notifications, dashboard, EN/RU web UI, Android task list with an
+offline queue. **Not done yet:** estimates, inventory, SLA, preventive maintenance, live updates,
+admin screens. See the limitations document before relying on anything.
 
-## Requirements
+## Requirements and verified versions
 
-Docker, `uv`, `bun`, Flutter SDK (with Android SDK).
+| Tool | Version used |
+|---|---|
+| Docker Desktop (Compose v2) | 29.x |
+| `uv` | 0.11+ (Python 3.13 is provided by the backend image) |
+| Bun | 1.4 |
+| Flutter / Dart | 3.50 / 3.14 |
+| JDK for the Android build | 17 |
+| Android SDK | platform 36, build-tools 36.0.0 |
 
-## Run (backend + database)
+## Run the backend and database
 
 ```bash
-cp .env.example .env
-docker compose up --build
+cp .env.example .env            # demo-only values
+docker compose up --build -d    # PostgreSQL + API, migrations run automatically
+docker compose run --rm backend python -m app.seed   # demo data (safe to repeat)
 ```
 
-API: http://localhost:8000 (docs at `/docs`), readiness: `GET /api/v1/health/ready`.
+- API: http://localhost:8000 (OpenAPI at `/docs`), health: `/api/v1/health/live` and `/ready`
+- Ports can be changed with `API_PORT` in `.env`.
+- Reset the local demo environment (**destroys the local database and uploads**):
+  `docker compose down -v`
+- Migrations only: `docker compose run --rm backend alembic upgrade head`
+
+## Run the web app
+
+```bash
+cd web
+bun install --frozen-lockfile
+bun run dev                     # http://localhost:3000
+```
+It talks to the API through its own `/bff` proxy (set `API_URL` if the API is not on
+`http://localhost:8000`). Sign in with a demo account below.
+
+## Demo accounts (seeded, one shared **demo-only** password: `Demo-2345!`)
+
+| Role | Organization A ("AIT Facility") | Organization B ("Nord Service") |
+|---|---|---|
+| Administrator | `admin.a@fixflow.test` | `admin.b@fixflow.test` |
+| Dispatcher | `dispatcher.a@fixflow.test` | `dispatcher.b@fixflow.test` |
+| Customer | `customer1.a@fixflow.test` ... `customer3.a@...` | `customer1.b@...`, `customer2.b@...` |
+| Technician | `tech1.a@...` ... `tech4.a@...` | `tech1.b@...`, `tech2.b@...` |
+
+`dispatcher.a@fixflow.test` is also a **customer** in organization B (one user, two organizations,
+different roles).
+
+## Android app (technician)
+
+```bash
+cd mobile
+flutter pub get
+flutter build apk --debug       # -> mobile/build/app/outputs/flutter-apk/app-debug.apk
+```
+
+Connecting to the local API (no secrets are stored in the APK; the server address is typed at sign-in):
+
+- **Android emulator:** `http://10.0.2.2:8000` (the emulator's alias for the computer's localhost; the default).
+- **Physical phone on the same Wi-Fi:** `http://<computer IP>:8000` (allow port 8000 in the firewall).
+- The debug/release manifest allows plain HTTP for local testing; use HTTPS in production.
+
+State management: **provider + ChangeNotifier** (`lib/state/app_state.dart`). Local persistent
+storage: **sembast** (a file-based document database): session, last synchronized tasks and the
+offline queue. Sign in as a technician demo account.
 
 ## Checks
 
 ```bash
-(cd backend && uv sync --frozen && uv run ruff check . && uv run ruff format --check . && uv run ty check . && uv run pytest -q)
+# backend (inside Docker, real PostgreSQL)
+docker compose --profile test run --rm backend-tests
+# web
+(cd web && bun install --frozen-lockfile && bun run lint && bun run typecheck && bun run test:ci && bun run build)
+# mobile
+(cd mobile && flutter pub get && dart format --output=none --set-exit-if-changed lib test && flutter analyze && flutter test)
 ```
+What was actually run and its results: [docs/VERIFICATION.md](docs/VERIFICATION.md).
+
+## Documentation
+[Architecture](docs/ARCHITECTURE.md) · [API](docs/API.md) · [Product decisions](docs/PRODUCT_DECISIONS.md) ·
+[Known limitations](docs/KNOWN_LIMITATIONS.md) · [Verification](docs/VERIFICATION.md)

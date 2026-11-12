@@ -281,6 +281,7 @@ export const en = {
   "err.forbidden": "You are not allowed to do this.",
   "err.requires_dedicated_endpoint": "Use the assignment panel for this change.",
   "err.request_not_found": "Request not found.",
+  "err.estimate_not_approved": "The customer must approve the estimate before work can start.",
 } as const;
 
 export type TKey = keyof typeof en;
@@ -569,4 +570,5 @@ export const ru: Dict = {
   "err.forbidden": "У вас нет прав на это действие.",
   "err.requires_dedicated_endpoint": "Для этого изменения используйте панель назначения.",
   "err.request_not_found": "Заявка не найдена.",
+  "err.estimate_not_approved": "Заказчик должен одобрить смету, прежде чем можно начать работу.",
 };

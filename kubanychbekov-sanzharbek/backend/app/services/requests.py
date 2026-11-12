@@ -7,6 +7,7 @@ from app.domain.enums import (
     ACTIVE_ASSIGNMENT_STATUSES,
     AssetStatus,
     AssignmentStatus,
+    EstimateStatus,
     Priority,
     RequestStatus,
     Role,
@@ -15,6 +16,7 @@ from app.domain.lifecycle import TransitionError, allowed_targets, check_transit
 from app.models import (
     Asset,
     Assignment,
+    Estimate,
     Property,
     RequestStatusHistory,
     ServiceCategory,
@@ -250,6 +252,30 @@ def transition_request(
             "reason_required": 422,
         }.get(err.code, 403)
         raise AppError(status, err.code, str(err)) from err
+
+    # EST-04: once an estimate was sent to the customer, work cannot start until it is approved.
+    # (No submitted estimate = work may start. A rejected one must be replaced or withdrawn first.)
+    if source == RequestStatus.ACCEPTED and target == RequestStatus.IN_PROGRESS:
+        newest = db.scalar(
+            select(Estimate.status)
+            .where(
+                Estimate.organization_id == ctx.org_id,
+                Estimate.request_id == req.id,
+                Estimate.status.in_(
+                    [
+                        EstimateStatus.AWAITING_APPROVAL,
+                        EstimateStatus.APPROVED,
+                        EstimateStatus.REJECTED,
+                    ]
+                ),
+            )
+            .order_by(Estimate.version.desc())
+            .limit(1)
+        )
+        if newest is not None and newest != EstimateStatus.APPROVED:
+            raise AppError(
+                409, "estimate_not_approved", "The estimate must be approved before work starts"
+            )
 
     # Compare-and-set: the UPDATE only matches if nobody changed the status meanwhile, so two
     # concurrent transitions cannot both succeed (LIFE-08).

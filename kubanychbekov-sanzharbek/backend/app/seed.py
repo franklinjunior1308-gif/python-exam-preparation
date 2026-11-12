@@ -5,6 +5,7 @@ All accounts share ONE throw-away demo password. It is for local demos only.
 
 import random
 from datetime import UTC, datetime, time, timedelta
+from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import select
@@ -16,6 +17,7 @@ from app.domain.enums import AssetStatus, AssignmentStatus, Priority, RequestSta
 from app.models import (
     Asset,
     Assignment,
+    InventoryItem,
     Organization,
     OrganizationMembership,
     Property,
@@ -147,6 +149,20 @@ ORGS = [
         "requests": 24,
     },
 ]
+INVENTORY = [
+    # code, name, unit, stock, reorder threshold, price in tyiyn
+    ("FLT-01", "Air filter", "pcs", "12", "5", 85_000),
+    ("REF-410", "Refrigerant R410A", "kg", "4", "5", 420_000),  # low stock on purpose
+    ("BLT-02", "Drive belt", "pcs", "18", "10", 120_000),
+    ("CLN-03", "Cleaning agent", "l", "3", "5", 60_000),  # low stock on purpose
+    ("TAP-04", "Sealing tape", "m", "50", "20", 1_500),
+    ("PIP-05", "Copper pipe 1/2", "m", "30", "10", 35_000),
+    ("BLB-06", "LED lamp", "pcs", "40", "15", 22_000),
+    ("FUS-07", "Fuse 16A", "pcs", "25", "10", 9_000),
+    ("GSK-08", "Gasket set", "set", "14", "6", 48_000),
+    ("OIL-09", "Machine oil", "l", "20", "8", 55_000),
+]
+
 ASSET_TYPES = ["HVAC unit", "Elevator", "Pump", "Generator", "Boiler"]
 
 
@@ -246,6 +262,19 @@ def seed_org(db: Session, spec: dict, rng: random.Random, shared: User | None) -
             reason="Annual leave",
         )
     )
+
+    for code, name, unit, stock, threshold, price in INVENTORY:
+        db.add(
+            InventoryItem(
+                organization_id=org.id,
+                code=code,
+                name=name,
+                unit=unit,
+                stock=Decimal(stock),
+                reorder_threshold=Decimal(threshold),
+                unit_price_cents=price,
+            )
+        )
 
     assets: list[Asset] = []
     for i in range(1, 8):

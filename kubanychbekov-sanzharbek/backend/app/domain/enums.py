@@ -27,6 +27,14 @@ class RequestStatus(StrEnum):
     REOPENED = "REOPENED"
 
 
+class EstimateStatus(StrEnum):
+    DRAFT = "DRAFT"
+    AWAITING_APPROVAL = "AWAITING_APPROVAL"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    SUPERSEDED = "SUPERSEDED"  # replaced by a newer version, or withdrawn
+
+
 class NoteVisibility(StrEnum):
     PUBLIC = "public"  # visible to the customer too
     INTERNAL = "internal"  # staff and technicians only

@@ -138,6 +138,7 @@ const Map<String, String> en = {
   'err.file_too_large': 'The photo is larger than 10 MB.',
   'err.file_missing': 'The photo file is no longer on the phone.',
   'err.work_started': 'Work has already started.',
+  'err.estimate_not_approved': 'The customer must approve the estimate before work can start.',
   'err.generic': 'The operation failed. Please try again.',
 };
 
@@ -277,6 +278,7 @@ const Map<String, String> ru = {
   'err.file_too_large': 'Фото больше 10 МБ.',
   'err.file_missing': 'Файла фото больше нет на телефоне.',
   'err.work_started': 'Работа уже началась.',
+  'err.estimate_not_approved': 'Заказчик должен одобрить смету, прежде чем можно начать работу.',
   'err.generic': 'Операция не удалась. Повторите попытку.',
 };
 
