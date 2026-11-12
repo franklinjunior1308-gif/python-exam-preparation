@@ -18,26 +18,30 @@ Status of work in progress. Nothing is marked done unless it works end to end.
 - Inventory: items, replenishment history, non-negative stock (CHECK constraint), atomic and
   idempotent material write-off with a price snapshot, race-safe for the last units, low-stock
   notifications.
-- Web (EN/RU): landing, sign-in, organization picker, dashboard with charts, requests list/new/detail,
-  assignment panel, schedule.
+- SLA: working-time clock (hours/holidays), at-risk / overdue states, pauses while an estimate awaits approval,
+  one escalation per overdue request, overdue queue.
+- Preventive maintenance: weekly/monthly plans, idempotent generation of requests, last/next service per asset.
+- Customer feedback (1-5 + comment, once per request) and the administrator audit feed.
+- Web (EN/RU): landing, sign-in, organization picker, dashboard with charts and SLA totals, requests
+  list/new (with photos)/detail, assignment panel with Smart Assign, schedule, estimates, SLA badge and
+  overdue queue, inventory with low stock, maintenance plans, notifications inbox, admin settings (working
+  hours, holidays), customer feedback, audit log.
 - Android (Flutter): sign-in, organization choice, task list from a local database, task details,
   accept / decline / start / block / resume / complete, notes and photos with an offline queue,
-  stable command ids, conflict handling, notifications, profile, EN/RU.
+  stable command ids, conflict handling, materials write-off (online), approved estimate total,
+  notifications, profile, EN/RU. A debug APK builds (see `VERIFICATION.md`).
+- Compose runs `db`, `backend` and `web`; `scripts/smoke.sh` checks the real lifecycle, a 409 double
+  booking and tenant isolation.
 
 ## Not implemented yet (do not treat as done)
-- **SLA** clock, pauses, escalation (SLA-*) and the overdue queue.
-- **Preventive maintenance** plans and generation (PM-*).
-- **Web screens** for estimates, inventory, administration (staff, categories, skills, working hours,
-  holidays), SLA reports, audit feed, notifications; customer feedback; photo upload in the web
-  request form; live updates (WebSocket/SSE, API-06).
-- **Android screens** for materials (the API exists), estimate total on the task, live updates;
-  completion does not yet verify materials (LIFE-05 "materials correctly accounted").
-- **Backend**: login rate limiting (SEC-03), request-ID structured logging (SEC-08), seed data for
-  estimates / plans / SLA cases (SEED-02/03 are partially covered), editing technician skills and
-  availability through the API (they exist in the database and seed only).
-- **Verification**: no browser/E2E tests for web; no instrumented tests for Android; the
-  `scripts/verify-all.sh` and `scripts/smoke.sh` are only partly implemented; `compose.yaml` has no
-  `web` service yet (the web app runs with `bun run dev`).
+- **Web administration screens** for staff/roles, categories and technician skills/availability (the
+  working-hours and holiday screens exist); an SLA report page beyond the dashboard totals.
+- **Backend**: login rate limiting (SEC-03), request-ID structured logging (SEC-08), user/role management
+  API (ORG-04, AUTH-05), live updates over WebSocket/SSE (API-06). Technician skills/availability editing
+  through the API is in progress.
+- **Android**: live updates; completion does not yet verify materials (LIFE-05 "materials correctly
+  accounted").
+- **Verification**: no browser/E2E tests for the web; no instrumented tests for Android.
 - Customers see every active property of their organization (there is no customer-to-property link).
 - The Android app keeps its session token in the app's private storage (sembast), not in the
   hardware-backed keystore, and allows plain HTTP for local development.
