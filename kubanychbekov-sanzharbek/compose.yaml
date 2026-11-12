@@ -1,4 +1,4 @@
-# FixFlow local stack: db + backend. The `web` service is added when the web app exists.
+# FixFlow local stack: db + backend + web (http://localhost:3000).
 services:
   db:
     image: postgres:17
@@ -33,6 +33,16 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+
+  web:
+    build: ./web
+    environment:
+      API_URL: http://backend:8000
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
 
   # Backend tests against a throw-away database:  docker compose --profile test run --rm backend-tests
   backend-tests:

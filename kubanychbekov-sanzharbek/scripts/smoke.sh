@@ -1,11 +1,6 @@
 #!/usr/bin/env bash
-# Smoke test against a running, seeded system. Non-zero exit on any unexpected result.
+# Smoke test against a running, seeded system (docker compose up -d; python -m app.seed). Non-zero exit on failure.
 set -euo pipefail
-API="${API_URL:-http://localhost:8000}/api/v1"
-
-code=$(curl -s -o /dev/null -w '%{http_code}' "$API/health/ready")
-[ "$code" = "200" ] || { echo "FAIL: readiness returned $code"; exit 1; }
-echo "ok: readiness"
-
-# TODO: login, create request, assign, expect 409 on conflict (added with the domain code).
-echo "smoke: only health checked so far"
+cd "$(dirname "$0")"
+PY="$(command -v python3 || command -v python)"
+exec "$PY" smoke.py
