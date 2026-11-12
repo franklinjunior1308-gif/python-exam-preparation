@@ -1,6 +1,7 @@
 from app.models.audit import AuditEvent
 from app.models.catalog import Asset, Property, ServiceCategory
 from app.models.estimate import Estimate, EstimateLine
+from app.models.feedback import RequestFeedback
 from app.models.inventory import InventoryItem, MaterialUsage, StockReplenishment
 from app.models.maintenance import MaintenancePlan
 from app.models.org import Organization, OrganizationMembership, User, UserSession
@@ -34,6 +35,7 @@ __all__ = [
     "Organization",
     "OrganizationMembership",
     "Property",
+    "RequestFeedback",
     "RequestStatusHistory",
     "ServiceCategory",
     "ServiceRequest",

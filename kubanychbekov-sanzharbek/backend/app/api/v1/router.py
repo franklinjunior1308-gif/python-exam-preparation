@@ -4,6 +4,7 @@ from app.api.v1 import (
     auth,
     catalog,
     estimates,
+    feedback,
     health,
     inventory,
     maintenance,
@@ -26,3 +27,4 @@ api_router.include_router(estimates.router)
 api_router.include_router(inventory.router)
 api_router.include_router(sla.router)
 api_router.include_router(maintenance.router)
+api_router.include_router(feedback.router)

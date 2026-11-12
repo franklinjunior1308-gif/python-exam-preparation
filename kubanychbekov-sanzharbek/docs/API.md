@@ -92,3 +92,22 @@ POST /api/v1/requests/5/complete
 ```
 Needs a summary of at least 20 characters (`422 summary_too_short`) and at least one photo uploaded by
 the technician (`422 photo_required`). Repeating the same command returns the same result.
+
+### Customer feedback (COMM-07)
+```http
+GET  /api/v1/requests/5/feedback          -> 200 null | {"id", "request_id", "author_user_id", "rating", "comment", "created_at"}
+POST /api/v1/requests/5/feedback
+{"rating": 4, "comment": "Fast and tidy"}  -> 201 {...}
+```
+Only the customer who created the request may rate it (`403 forbidden`), only after it is `COMPLETED` or `CLOSED`
+(`409 request_not_finished`), once (`409 feedback_exists`, enforced by a unique constraint, so a double click is
+safe). Rating is 1-5 (`422`). Anyone who can see the request can read the rating.
+
+### Audit feed (ORG-05, administrators only)
+```http
+GET /api/v1/audit?limit=50&offset=0&action=inventory.&object_type=service_request
+200 {"items": [{"id", "created_at", "actor_user_id", "actor_name", "action", "object_type", "object_id",
+                "before", "after"}], "total": 19, "limit": 50, "offset": 0}
+```
+Newest first, scoped to the organization in `X-Organization-Id`; `action` is a prefix filter. Other roles get
+`403 forbidden`. `limit` is 1-200.
