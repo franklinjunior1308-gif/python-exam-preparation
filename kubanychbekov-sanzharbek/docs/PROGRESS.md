@@ -130,9 +130,15 @@ If Gradle still hangs on a dependency download, run the build in the background 
 the connection is slow (~0.5 MB/s) and some hosts stall - restart the build, caches are kept.
 
 ## CURRENT NEXT STEP
-Finish the Gradle zip download (still running), install it into Gradle's cache as above, run
-`flutter build apk --debug`, show the user the test results + APK path/size. Then continue with
-**SLA** (item 2 above), then preventive maintenance.
+1. Finish the Gradle zip download (still running at last check), install it into Gradle's cache as above,
+   run `flutter build apk --debug`, show the user the test results + APK path/size.
+2. **SLA is partly done**: the pure working-time arithmetic exists in `backend/app/domain/sla.py` with 9
+   unit tests (`tests/test_sla.py`, weekends/holidays/pauses/thresholds). Still to do for SLA-01..07:
+   DB tables (org working-hours settings + holidays, per-request SLA events/pauses, escalation record),
+   hook pauses to estimate AWAITING_APPROVAL start/end, expose state on requests + `/sla/overdue`,
+   one-time escalation notification with a unique DB constraint, local command
+   `python -m app.sla_scan`, tests (E2E-07: Friday evening HIGH request, holiday, estimate pause, one escalation).
+3. Then preventive maintenance (PM-*).
 
 ## Submission (do not do early)
 Only on Sunday 2026-11-15 after 16:00: accept the invitation, create branch
