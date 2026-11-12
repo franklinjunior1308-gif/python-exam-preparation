@@ -111,3 +111,16 @@ GET /api/v1/audit?limit=50&offset=0&action=inventory.&object_type=service_reques
 ```
 Newest first, scoped to the organization in `X-Organization-Id`; `action` is a prefix filter. Other roles get
 `403 forbidden`. `limit` is 1-200.
+
+### Technician skills and weekly hours (ORG-01, administrators only)
+```http
+GET /api/v1/technicians                      (staff) -> [{"id", "user_id", "full_name", "email", "is_active",
+                                                         "skills": ["hvac"], "availability": [{"weekday": 0, "start_time": "09:00:00", "end_time": "18:00:00"}], "load_percent"}]
+PUT /api/v1/technicians/{id}/profile
+{"skills": ["hvac", "electrical"], "availability": [{"weekday": 0, "start_time": "08:00:00", "end_time": "17:00:00"}], "is_active": true}
+200 <the technician as above>
+```
+Replaces skills and weekly intervals as a whole. Skills are trimmed, lower-cased and de-duplicated; `weekday` is 0
+(Monday) to 6; intervals must end after they start and must not overlap on one day (`422`). `is_active` is optional.
+Other roles get `403`, another organization's technician `404`. The change is written to the audit feed
+(`technician.profile_updated`) and Smart Assign uses it immediately.

@@ -13,8 +13,10 @@ from app.schemas.scheduling import (
     ScheduleOut,
     SuggestionOut,
     TechnicianOut,
+    TechnicianProfileIn,
 )
 from app.services import scheduling as service
+from app.services import technicians as technician_service
 
 router = APIRouter(tags=["scheduling"])
 
@@ -22,6 +24,14 @@ router = APIRouter(tags=["scheduling"])
 @router.get("/technicians", response_model=list[TechnicianOut])
 def technicians(ctx: OrgDep, db: DbDep) -> list[TechnicianOut]:
     return service.technician_list(db, ctx)
+
+
+@router.put("/technicians/{technician_id}/profile", response_model=TechnicianOut)
+def update_technician_profile(
+    technician_id: int, data: TechnicianProfileIn, ctx: OrgDep, db: DbDep
+) -> TechnicianOut:
+    """Admin only. Replaces skills and weekly working hours; used by Smart Assign at once."""
+    return technician_service.update_profile(db, ctx, technician_id, data)
 
 
 @router.get("/schedule", response_model=ScheduleOut)

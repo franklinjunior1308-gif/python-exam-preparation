@@ -103,3 +103,30 @@ class ScheduleOut(BaseModel):
     technicians: list[TechnicianOut]
     assignments: list[AssignmentOut]
     absences: list[AbsenceOut]
+
+
+class TechnicianProfileIn(BaseModel):
+    """Replaces the technician's skills and weekly working hours as a whole (ORG-01)."""
+
+    skills: list[str] = Field(max_length=30)
+    availability: list[AvailabilityOut] = Field(max_length=28)
+    is_active: bool | None = None
+
+    @model_validator(mode="after")
+    def _check(self) -> Self:
+        cleaned = sorted({s.strip().lower() for s in self.skills if s.strip()})
+        if any(len(s) > 60 for s in cleaned):
+            raise ValueError("a skill is at most 60 characters")
+        self.skills = cleaned
+        by_day: dict[int, list[tuple[time, time]]] = {}
+        for span in self.availability:
+            if not 0 <= span.weekday <= 6:
+                raise ValueError("weekday must be 0 (Monday) to 6 (Sunday)")
+            if span.end_time <= span.start_time:
+                raise ValueError("a working interval must end after it starts")
+            by_day.setdefault(span.weekday, []).append((span.start_time, span.end_time))
+        for spans in by_day.values():
+            spans.sort()
+            if any(a[1] > b[0] for a, b in zip(spans, spans[1:], strict=False)):
+                raise ValueError("working intervals on one day must not overlap")
+        return self
