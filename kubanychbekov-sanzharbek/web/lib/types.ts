@@ -211,3 +211,15 @@ export type Summary = {
   by_category: { category_id: number; name: string; count: number }[];
   daily: { date: string; created: number; completed: number }[];
 };
+
+export type InventoryItem = {
+  id: number;
+  code: string;
+  name: string;
+  unit: string;
+  stock: string;
+  reorder_threshold: string;
+  unit_price_cents: number;
+  is_active: boolean;
+  low_stock: boolean;
+};

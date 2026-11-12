@@ -26,6 +26,7 @@ from app.models import (
     AuditEvent,
     Estimate,
     EstimateLine,
+    InventoryItem,
     Organization,
     OrganizationMembership,
     RequestStatusHistory,
@@ -37,6 +38,14 @@ from app.services.maintenance import generate
 from app.services.sla import load_calendar
 
 MARKER = "seed.extra"
+INVENTORY_MARKER = "seed.extra.inventory"
+PARTS = [
+    ("FLT-01", "Air filter", "pcs", "12", "5", 85_000),
+    ("TPE-02", "Sealing tape", "m", "40", "10", 1_500),
+    ("PMP-03", "Circulation pump", "pcs", "2", "3", 640_000),  # below its level: low stock
+    ("CAP-04", "Capacitor 40uF", "pcs", "3", "3", 32_000),  # exactly at its level: low stock
+    ("GAS-05", "Refrigerant R410A", "kg", "18.5", "6", 210_000),
+]
 
 
 def _staff_id(db: Session, org_id: int) -> int:
@@ -317,8 +326,49 @@ def seed_org(db: Session, org: Organization) -> list[str]:
     return done
 
 
+def seed_inventory(db: Session) -> None:
+    for org in db.scalars(select(Organization)):
+        marker = db.scalar(
+            select(AuditEvent.id).where(
+                AuditEvent.organization_id == org.id, AuditEvent.action == INVENTORY_MARKER
+            )
+        )
+        if marker is not None:
+            continue
+        for code, name, unit, stock, threshold, price in PARTS:
+            exists = db.scalar(
+                select(InventoryItem.id).where(
+                    InventoryItem.organization_id == org.id, InventoryItem.code == code
+                )
+            )
+            if exists is None:
+                db.add(
+                    InventoryItem(
+                        organization_id=org.id,
+                        code=code,
+                        name=name,
+                        unit=unit,
+                        stock=Decimal(stock),
+                        reorder_threshold=Decimal(threshold),
+                        unit_price_cents=price,
+                    )
+                )
+        db.add(
+            AuditEvent(
+                organization_id=org.id,
+                action=INVENTORY_MARKER,
+                object_type="organization",
+                object_id=str(org.id),
+                after={"items": len(PARTS)},
+            )
+        )
+        db.commit()
+        print(f"inventory for {org.name}: {len(PARTS)} items")
+
+
 def main() -> None:
     with get_sessionmaker()() as db:
+        seed_inventory(db)
         for org in db.scalars(select(Organization)):
             marker = db.scalar(
                 select(AuditEvent.id).where(
