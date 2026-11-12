@@ -62,6 +62,29 @@ export async function api<T>(path: string, options: Options = {}): Promise<T> {
   return payload as T;
 }
 
+/** Multipart upload (the browser sets the boundary; JSON content-type must not be forced). */
+export async function apiUpload<T>(path: string, form: FormData): Promise<T> {
+  let res: Response;
+  try {
+    res = await fetch(`/bff/${path}`, {
+      method: "POST",
+      headers: { "x-requested-with": "fixflow" },
+      body: form,
+      cache: "no-store",
+      credentials: "same-origin",
+    });
+  } catch {
+    throw new ApiError(0, "network", "Network error");
+  }
+  const text = await res.text();
+  const payload = text ? (JSON.parse(text) as unknown) : null;
+  if (!res.ok) {
+    const error = (payload as { error?: { code?: string; message?: string } })?.error;
+    throw new ApiError(res.status, error?.code ?? "generic", error?.message ?? res.statusText);
+  }
+  return payload as T;
+}
+
 /** Map a backend error code to a translation key suffix, falling back to a generic message. */
 export function errorKey(error: unknown): string {
   if (error instanceof ApiError) {

@@ -74,7 +74,7 @@ async function handle(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     upstream = await fetch(`${API_URL}/api/v1/${route}${req.nextUrl.search}`, {
       method: req.method,
       headers,
-      body: isRead ? undefined : await req.text(),
+      body: isRead ? undefined : await req.arrayBuffer(),
       cache: "no-store",
     });
   } catch {
@@ -99,7 +99,8 @@ async function handle(req: NextRequest, ctx: Ctx): Promise<NextResponse> {
     return res;
   }
 
-  const body = upstream.status === 204 ? null : await upstream.text();
+  // bytes, not text: attachments are binary images and must pass through unchanged
+  const body = upstream.status === 204 ? null : await upstream.arrayBuffer();
   return new NextResponse(body, {
     status: upstream.status,
     headers: {

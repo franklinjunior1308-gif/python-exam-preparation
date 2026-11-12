@@ -265,3 +265,15 @@ export type WorkingHours = {
   holidays: { id: number; day: string; name: string }[];
   is_default: boolean;
 };
+
+export type Attachment = {
+  id: number;
+  request_id: number;
+  note_id: number | null;
+  purpose: string;
+  content_type: string;
+  size_bytes: number;
+  width: number;
+  height: number;
+  created_at: string;
+};
