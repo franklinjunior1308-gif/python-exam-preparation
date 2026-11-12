@@ -21,6 +21,18 @@ export function OverduePage() {
     enabled: staff,
   });
 
+  const states = ["ON_TRACK", "AT_RISK", "OVERDUE"] as const;
+  const totals = useQuery({
+    queryKey: ["sla-totals", orgId],
+    enabled: staff,
+    queryFn: async () => {
+      const rows = await Promise.all(
+        states.map((state) => api<{ total: number }>("requests", { query: { sla: state, page_size: 1 } })),
+      );
+      return Object.fromEntries(states.map((state, i) => [state, rows[i]?.total ?? 0])) as Record<(typeof states)[number], number>;
+    },
+  });
+
   if (!staff) return <div className="alert">{t("schedule.onlyStaff")}</div>;
 
   return (
@@ -30,6 +42,15 @@ export function OverduePage() {
           <h1>{t("overdue.title")}</h1>
           <p className="page-sub">{t("overdue.sub")}</p>
         </div>
+      </div>
+
+      <div className="sla-totals">
+        {states.map((state) => (
+          <Link key={state} href={`/app/requests?sla=${state}`} className="card sla-total">
+            <span className={`badge sla-${state}`}>{t(`sla.${state}`)}</span>
+            <strong>{totals.data ? totals.data[state] : "-"}</strong>
+          </Link>
+        ))}
       </div>
 
       <section className="card">
