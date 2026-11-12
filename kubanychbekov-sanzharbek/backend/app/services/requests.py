@@ -41,7 +41,7 @@ def to_out(req: ServiceRequest, ctx: OrgContext) -> RequestOut:
     return out
 
 
-def _visible_to(ctx: OrgContext):
+def visible_conditions(ctx: OrgContext):
     """Row-level visibility (ROLE-03). Always scoped to the organization."""
     conditions = [ServiceRequest.organization_id == ctx.org_id]
     if ctx.role == Role.CUSTOMER:
@@ -123,7 +123,7 @@ def create_request(db: Session, ctx: OrgContext, data: RequestCreate) -> Service
 def get_request(db: Session, ctx: OrgContext, request_id: int) -> ServiceRequest:
     """404 (not 403) for other organizations / other customers: no existence leak (SEC-01)."""
     req = db.scalar(
-        select(ServiceRequest).where(ServiceRequest.id == request_id, *_visible_to(ctx))
+        select(ServiceRequest).where(ServiceRequest.id == request_id, *visible_conditions(ctx))
     )
     if req is None:
         raise AppError(404, "request_not_found", "Request not found")
@@ -144,7 +144,7 @@ def list_requests(
     sort_by: str,
     descending: bool,
 ) -> tuple[list[ServiceRequest], int]:
-    conditions = _visible_to(ctx)
+    conditions = visible_conditions(ctx)
     if status:
         conditions.append(ServiceRequest.status == status)
     if priority:

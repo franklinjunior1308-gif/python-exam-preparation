@@ -1,34 +1,31 @@
 import Link from "next/link";
-import { DashboardPreview } from "./DashboardPreview";
-import { ArrowIcon, BoltIcon, CheckIcon, PlayIcon } from "./icons";
+import { ArrowIcon, CalendarIcon, CheckCircleIcon, CheckIcon, PlayIcon, WrenchIcon } from "@/components/icons";
+import { getT } from "@/lib/i18n/server";
 
-const POINTS = ["Real-time dispatching", "Offline-ready technician app", "Working-hours SLA tracking"];
+export async function Hero() {
+  const { t } = await getT();
+  const points = [t("landing.point1"), t("landing.point2"), t("landing.point3")];
 
-export function Hero() {
   return (
-    <section className="hero container" aria-labelledby="hero-title">
-      <div className="hero-copy">
-        <span className="badge">
-          <BoltIcon size={16} /> Field Service Management Platform
+    <section className="container l-hero" aria-labelledby="hero-title">
+      <div className="l-hero-copy">
+        <span className="l-badge">
+          <WrenchIcon size={16} /> {t("landing.badge")}
         </span>
         <h1 id="hero-title">
-          Streamline Field Service <span className="accent">Operations</span>
+          {t("landing.title")} <span className="accent">{t("landing.titleAccent")}</span>
         </h1>
-        <p className="lead">
-          A complete field service management platform to dispatch work, manage maintenance, handle
-          service requests, coordinate technicians and keep every commitment on track, all in one
-          place.
-        </p>
-        <div className="cta-row">
+        <p className="l-lead">{t("landing.lead")}</p>
+        <div className="l-cta">
           <Link href="/login" className="btn btn-primary btn-lg">
-            Get Started <ArrowIcon size={18} />
+            {t("landing.cta")} <ArrowIcon size={18} />
           </Link>
           <a href="#preview" className="btn btn-outline btn-lg">
-            <PlayIcon size={16} /> View Preview
+            <PlayIcon size={16} /> {t("landing.demo")}
           </a>
         </div>
-        <ul className="checks">
-          {POINTS.map((point) => (
+        <ul className="l-points">
+          {points.map((point) => (
             <li key={point}>
               <CheckIcon size={18} /> {point}
             </li>
@@ -36,9 +33,24 @@ export function Hero() {
         </ul>
       </div>
 
-      <div id="preview" className="hero-visual">
-        <DashboardPreview />
-        <p className="caption">Illustrative preview with sample data.</p>
+      <div className="l-hero-photo">
+        {/* Marketing photo: used only in this hero block. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/technician.webp" alt="" width={345} height={426} />
+        <div className="l-chip l-chip-a" aria-hidden="true">
+          <CheckCircleIcon size={26} />
+          <span>
+            {t("landing.chip.done")}
+            <b>{t("landing.chip.doneStatus")}</b>
+          </span>
+        </div>
+        <div className="l-chip l-chip-b" aria-hidden="true">
+          <CalendarIcon size={26} />
+          <span>
+            {t("landing.chip.next")}
+            <b>{t("landing.chip.nextWhen")}</b>
+          </span>
+        </div>
       </div>
     </section>
   );

@@ -1,20 +1,22 @@
-import { Features } from "@/components/landing/Features";
-import { Footer } from "@/components/landing/Footer";
 import { Header } from "@/components/landing/Header";
 import { Hero } from "@/components/landing/Hero";
-import { Highlights } from "@/components/landing/Highlights";
+import { Footer, PreviewAndFeatures, Roles, Strip } from "@/components/landing/Sections";
+import { getT } from "@/lib/i18n/server";
+import "./landing.css";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const { t } = await getT();
   return (
     <>
       <a className="skip-link" href="#main">
-        Skip to content
+        {t("common.skip")}
       </a>
       <Header />
       <main id="main">
         <Hero />
-        <Features />
-        <Highlights />
+        <Strip />
+        <PreviewAndFeatures />
+        <Roles />
       </main>
       <Footer />
     </>

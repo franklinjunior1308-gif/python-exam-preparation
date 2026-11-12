@@ -114,11 +114,22 @@ def check_transition(
 
 
 def allowed_targets(
-    source: S, role: Role, *, is_owner: bool = False, is_assignee: bool = False
+    source: S,
+    role: Role,
+    *,
+    is_owner: bool = False,
+    is_assignee: bool = False,
+    include_dedicated: bool = False,
 ) -> list[S]:
-    """Targets the actor could pick right now (used for the 'allowed actions' in the UI)."""
+    """Targets the actor could pick right now (used for the 'allowed actions' in the UI).
+
+    Transitions that need a dedicated endpoint (assignment, completion) are left out unless
+    `include_dedicated` is set, because the generic transition endpoint rejects them.
+    """
     result: list[S] = []
     for rule in RULES:
+        if rule.dedicated_endpoint and not include_dedicated:
+            continue
         if rule.source == source and _applies(rule, role, is_owner, is_assignee):
             if rule.target not in result:
                 result.append(rule.target)
