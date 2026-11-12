@@ -71,9 +71,11 @@ class RequestStatusHistory(Base):
     organization_id: Mapped[int] = mapped_column(ForeignKey("organizations.id"))
     request_id: Mapped[int] = mapped_column(ForeignKey("service_requests.id"))
     from_status: Mapped[RequestStatus | None] = mapped_column(
-        enum_column(RequestStatus), default=None
+        enum_column(RequestStatus, name="history_from_status"), default=None
     )
-    to_status: Mapped[RequestStatus] = mapped_column(enum_column(RequestStatus))
+    to_status: Mapped[RequestStatus] = mapped_column(
+        enum_column(RequestStatus, name="history_to_status")
+    )
     actor_user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     reason: Mapped[str | None] = mapped_column(String(1000), default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())

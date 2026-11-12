@@ -16,12 +16,17 @@ class TimestampMixin:
     )
 
 
-def enum_column(enum_cls: type[StrEnum], length: int = 20) -> Enum:
-    """Enum stored as VARCHAR with a CHECK constraint (easy to migrate, enforced by the DB)."""
+def enum_column(enum_cls: type[StrEnum], length: int = 20, name: str | None = None) -> Enum:
+    """Enum stored as VARCHAR with a CHECK constraint (easy to migrate, enforced by the DB).
+
+    Pass a distinct `name` when two columns of the same table use the same enum, because
+    constraint names must be unique within a table.
+    """
     return Enum(
         enum_cls,
         native_enum=False,
         length=length,
         create_constraint=True,
         values_callable=lambda e: [m.value for m in e],
+        name=name or enum_cls.__name__.lower(),
     )
