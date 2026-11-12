@@ -52,8 +52,8 @@ before then** (see "Submission" at the end).
   Pure tests: lifecycle 97, scheduling 19, money 3, SLA 9, maintenance dates 7. The rest are integration tests on
   real PostgreSQL (overlap guard, concurrency, isolation, notes/photos/completion, estimates, inventory, SLA,
   maintenance, estimates/inventory races).
-- **Web**: `bun run lint && bun run typecheck && bun run test:ci && bun run build` -> all exit 0; **16 tests**
-  (EN/RU key parity, timezone conversion, API helpers).
+- **Web**: `bun run lint && bun run typecheck && bun run test:ci && bun run build` -> all exit 0; **23 tests**
+  (EN/RU key parity, timezone conversion, API helpers, money/estimate totals).
 - **Mobile**: `flutter analyze` -> No issues; `flutter test` -> **22 passed** (10 offline queue/sync + 12 app/widget/i18n).
 - Health verified live: `live` 200, `ready` 200, `ready` 503 with the DB stopped, recovers without restarting the API.
 
@@ -62,8 +62,8 @@ before then** (see "Submission" at the end).
   app fails on the host; run backend tests in Docker. Only pure tests run on the host.
 - Flutter widget tests that touch sembast must run inside `tester.runAsync` (fake-async otherwise hangs); run
   `flutter test --timeout=60s`. Detail screens are long: use a tall test surface.
-- Seed data has no estimates/SLA/plans yet; web has no estimate/inventory/plan/admin screens; Android has no
-  materials screen. Full list: `KNOWN_LIMITATIONS.md`.
+- Web has no inventory/plan/admin/notification screens yet; Android has no materials screen. Extra seed DONE
+  (`python -m app.seed_extra`, insert-only, marker audit event). Full list: `KNOWN_LIMITATIONS.md`.
 - The dev database was reset twice early on; do not reset it again.
 - Several shell snippets with Windows backslashes break inside Python heredocs: use the Write tool for files.
 
@@ -73,7 +73,7 @@ before then** (see "Submission" at the end).
   Gradle). Licenses were accepted by the user. `flutter config` points at these paths.
 - Gradle 9.5.0 is in `~/.gradle/wrapper/dists/gradle-9.5.0-all/aca6g93cdtcf0oapcfka748qh/gradle-9.5.0` (extracted
   with `tar`, marker `gradle-9.5.0-all.zip.ok` present).
-- **The APK is NOT built yet.** A background `flutter build apk --debug` (log `$env:TEMP\apk-build6.txt`) was running,
+- **The APK was still building** (NDK r28c and Platform 35 installed by Gradle). A background `flutter build apk --debug` (log `$env:TEMP\apk-build6.txt`) was running,
   at "Installing NDK (Side by side) 28.2 ... Downloading android-ndk-r28c-windows" ~14%; `~/.gradle/caches` ~880 MB.
   Expected output: `mobile/build/app/outputs/flutter-apk/app-debug.apk`.
 
@@ -93,10 +93,9 @@ before then** (see "Submission" at the end).
 
 ## Remaining mandatory work, in priority order (SLA and preventive maintenance backends are DONE)
 1. **APK**: finish `flutter build apk --debug` (recipe below), record path/size in `VERIFICATION.md`.
-2. **Seed completion** (SEED-01..05): maintenance plans (>= 3, one already due), estimates in several states, SLA
-   cases (overdue/at risk), a conflict candidate. Add as an idempotent "extra seed" that only inserts when missing.
-3. **Web screens** (all backend APIs exist): SLA badge on list/detail + overdue queue; estimates (create/submit/
-   customer decision); inventory + low stock; maintenance plans + asset page (next/last service); admin screens
+2. ~~Seed completion~~ DONE (commit f5da98e): 3 plans/org (one generated), estimates approved/awaiting/rejected+v2,
+   at-risk SLA request, conflict candidate. Verified through the API (6 AT_RISK, 14 OVERDUE).
+3. **Web screens** (all backend APIs exist; SLA badge/filter/overdue queue and estimates UI are DONE): inventory + low stock; maintenance plans + asset page (next/last service); admin screens
    (working hours, holidays, categories/skills, staff/roles, technician availability); notifications inbox;
    customer feedback; photo upload in the request form; audit feed; SLA report.
 4. **Android**: materials screen (`POST /requests/{id}/materials`, online only), estimate total on the task.
@@ -114,6 +113,7 @@ cd "C:/Users/ASUS ROG STRIX/fixflow/kubanychbekov-sanzharbek"
 
 # Docker Desktop must be running. Start / rebuild backend + DB (data volumes are kept):
 docker compose up -d --build backend
+docker compose run --rm backend python -m app.seed_extra       # plans/estimates/SLA demo data, idempotent
 docker compose run --rm backend python -m app.seed             # skips organizations that already exist
 docker compose run --rm backend python -m app.sla_scan         # escalate overdue requests (idempotent)
 docker compose run --rm backend python -m app.pm_generate      # generate due maintenance requests (idempotent)
@@ -160,8 +160,8 @@ to `~/.gradle/wrapper/dists/gradle-9.5.0-all/aca6g93cdtcf0oapcfka748qh/`, `tar -
    `Test-Path mobile\build\app\outputs\flutter-apk\app-debug.apk`. If there is no `java` process and no APK, run the
    recipe above again. On success: add size/path + `flutter analyze/test` results to `VERIFICATION.md`, commit locally,
    and show the user the test results and the APK.
-2. Then do remaining items 2 (extra seed) and 3 (web screens), starting with the SLA badge + overdue queue and the
-   estimates UI (mandatory screens, E2E-03 and E2E-07).
+2. Then item 3: web inventory + low stock, maintenance plans + asset page, admin screens, notifications inbox; then
+   the Android materials screen.
 3. After each module: `ruff`/`ty`, tests in Docker, commit locally, keep this file current.
 
 ## Submission (do not do early)
