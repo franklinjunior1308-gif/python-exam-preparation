@@ -277,3 +277,25 @@ export type Attachment = {
   height: number;
   created_at: string;
 };
+
+export type Feedback = {
+  id: number;
+  request_id: number;
+  author_user_id: number;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+};
+
+export type AuditEvent = {
+  id: number;
+  created_at: string;
+  actor_user_id: number | null;
+  actor_name: string | null;
+  action: string;
+  object_type: string;
+  object_id: string;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+};
+export type AuditPage = { items: AuditEvent[]; total: number; limit: number; offset: number };

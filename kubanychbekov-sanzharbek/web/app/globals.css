@@ -989,3 +989,11 @@ dialog::backdrop {
 .sla-totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 14px; }
 .sla-total { display: flex; justify-content: space-between; align-items: center; text-decoration: none; color: inherit; }
 .sla-total strong { font-size: 1.8rem; }
+
+.stars { color: #fbbf24; letter-spacing: 2px; font-size: 1.2rem; }
+.rating { border: 0; padding: 0; margin: 0 0 8px; display: flex; gap: 4px; align-items: center; flex-wrap: wrap; }
+.rating legend { width: 100%; padding: 0; margin-bottom: 6px; }
+.rating-star { position: relative; font-size: 1.8rem; color: #fbbf24; cursor: pointer; line-height: 1; }
+.rating-star input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
+.rating-star:focus-within { outline: 2px solid #5eead4; border-radius: 6px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }

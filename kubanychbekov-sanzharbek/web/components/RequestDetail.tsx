@@ -9,6 +9,7 @@ import type { Category, HistoryEntry, Property, RequestStatus, ServiceRequest } 
 import { AttachmentsPanel } from "./AttachmentsPanel";
 import { AssignPanel } from "./AssignPanel";
 import { EstimatesPanel } from "./EstimatesPanel";
+import { FeedbackPanel } from "./FeedbackPanel";
 import { SlaBadge } from "./SlaBadge";
 import { PriorityBadge, StatusBadge } from "./Badges";
 import { useI18n } from "./Providers";
@@ -135,6 +136,7 @@ export function RequestDetail({ requestId }: { requestId: number }) {
         <div style={{ display: "grid", gap: 14, alignContent: "start" }}>
           <AssignPanel request={req} />
           <EstimatesPanel request={req} />
+          <FeedbackPanel request={req} />
           <AttachmentsPanel request={req} />
           <section className="card">
             <h2>{t("detail.actions")}</h2>
