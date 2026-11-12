@@ -120,8 +120,8 @@ function summarize(before: Record<string, unknown> | null, after: Record<string,
   const parts = [...keys].slice(0, 4).map((key) => {
     const from = before?.[key];
     const to = after?.[key];
-    const show = (v: unknown) => (typeof v === "object" ? JSON.stringify(v) : String(v));
-    return from !== undefined && to !== undefined ? `${key}: ${show(from)} → ${show(to)}` : `${key}: ${show(to ?? from)}`;
+    const show = (v: unknown) => (v === null || v === undefined ? "-" : typeof v === "object" ? JSON.stringify(v) : String(v));
+    return from !== undefined && to !== undefined ? `${key}: ${show(from)} → ${show(to)}` : `${key}: ${show(to === undefined ? from : to)}`;
   });
   return parts.join("; ");
 }
