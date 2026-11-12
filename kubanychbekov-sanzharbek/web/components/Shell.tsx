@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, type FormEvent, type ReactNode, useContext, useState } from "react";
 import { api } from "@/lib/api-client";
 import type { Me, Membership, Role } from "@/lib/types";
-import { CalendarIcon, ClipboardIcon, CogIcon, ClockIcon, BoltIcon, HomeIcon, LayersIcon, ListIcon, LogoMark, LogoutIcon, PlusIcon, SearchIcon, WrenchIcon } from "./icons";
+import { CalendarIcon, ClipboardIcon, CogIcon, ClockIcon, BoltIcon, HelmetIcon, HomeIcon, LayersIcon, ListIcon, LogoMark, LogoutIcon, PlusIcon, SearchIcon, WrenchIcon } from "./icons";
 import { LangSwitch } from "./LangSwitch";
 import { useI18n } from "./Providers";
 
@@ -62,6 +62,12 @@ export function Shell({
       href: "/app/maintenance",
       label: t("nav.plans"),
       icon: <WrenchIcon />,
+      show: role === "dispatcher" || role === "admin",
+    },
+    {
+      href: "/app/technicians",
+      label: t("nav.technicians"),
+      icon: <HelmetIcon />,
       show: role === "dispatcher" || role === "admin",
     },
     { href: "/app/settings", label: t("nav.settings"), icon: <CogIcon />, show: role === "admin" },
