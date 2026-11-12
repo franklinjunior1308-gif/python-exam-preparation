@@ -258,3 +258,10 @@ export type AppNotification = {
   read_at: string | null;
   created_at: string;
 };
+
+export type WorkingHours = {
+  timezone: string;
+  intervals: { weekday: number; start_time: string; end_time: string }[];
+  holidays: { id: number; day: string; name: string }[];
+  is_default: boolean;
+};
