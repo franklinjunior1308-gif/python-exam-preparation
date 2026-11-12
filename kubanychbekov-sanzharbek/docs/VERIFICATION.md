@@ -32,6 +32,11 @@ notifications, admin working hours, technician skill edit (saved, lowercased by 
 through the web proxy (270 bytes up, 270 bytes down), SLA totals 20 / 6 / 14, audit log, accessibility scan of 10 pages
 (one unlabeled file input found and fixed), login lockout (5 failures, then 429 `too_many_attempts`).
 
+**LAN check for the phone (2026-11-13):** `FIXFLOW_API=http://192.168.0.242:8000 flutter test test/live` -> 2 passed (the
+app code reaches the API through the computer's Wi-Fi address); `GET http://192.168.0.242:8000/api/v1/health/ready` ->
+200. Installing on a real phone and the 11-step scenario are described in `docs/ANDROID_PHONE_TEST.md`; their result
+is recorded there only after they are run by hand.
+
 **Not verified:** the APK has not yet been installed on an emulator or a phone in this check (the live integration test
 below exercised the same app code against the real API); no browser/E2E tests for the web; no multi-worker run
 (SEC-07); the demo video is not recorded.
