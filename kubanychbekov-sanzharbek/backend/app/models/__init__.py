@@ -9,11 +9,15 @@ from app.models.scheduling import (
     TechnicianProfile,
     TechnicianSkill,
 )
+from app.models.work import EvidenceFile, Notification, WorkNote
 
 __all__ = [
     "Assignment",
     "Asset",
     "AuditEvent",
+    "EvidenceFile",
+    "Notification",
+    "WorkNote",
     "Organization",
     "OrganizationMembership",
     "Property",

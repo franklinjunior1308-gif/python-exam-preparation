@@ -50,6 +50,7 @@ from app.schemas.scheduling import (
     TechnicianOut,
 )
 from app.services.audit import record_audit
+from app.services.notifications import notify, notify_staff
 from app.services.requests import get_request
 
 STAFF = {Role.DISPATCHER, Role.ADMIN}
@@ -464,6 +465,15 @@ def assign(
         "assignment.created",
         {"technician_id": tech.profile.id, "start_at": data.start_at.isoformat()},
     )
+    notify(
+        db,
+        org_id=ctx.org_id,
+        user_id=tech.user.id,
+        type="assignment_created",
+        title=f"New task: request #{req.id}",
+        body=req.title,
+        request_id=req.id,
+    )
     db.commit()
     return _to_out(db, assignment, req.title), True
 
@@ -551,6 +561,15 @@ def reschedule(
                 "end_at": data.end_at.isoformat(),
             },
         )
+    notify(
+        db,
+        org_id=ctx.org_id,
+        user_id=tech.user.id,
+        type="assignment_rescheduled",
+        title=f"Task changed: request #{req.id}",
+        body=req.title,
+        request_id=req.id,
+    )
     db.commit()
     return _to_out(db, current, req.title)
 
@@ -591,6 +610,28 @@ def _release(
         action,
         {"assignment_id": assignment.id},
     )
+    tech_user_id = db.scalar(
+        select(TechnicianProfile.user_id).where(TechnicianProfile.id == assignment.technician_id)
+    )
+    if new_status == AssignmentStatus.DECLINED:  # the technician refused: tell the dispatchers
+        notify_staff(
+            db,
+            org_id=ctx.org_id,
+            type="assignment_declined",
+            title=f"Technician declined request #{req.id}",
+            body=reason or req.title,
+            request_id=req.id,
+        )
+    elif tech_user_id is not None:  # a dispatcher removed the task: tell the technician
+        notify(
+            db,
+            org_id=ctx.org_id,
+            user_id=tech_user_id,
+            type="assignment_canceled",
+            title=f"Task removed: request #{req.id}",
+            body=req.title,
+            request_id=req.id,
+        )
     db.commit()
     return _to_out(db, assignment, req.title)
 

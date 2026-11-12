@@ -27,6 +27,11 @@ class RequestStatus(StrEnum):
     REOPENED = "REOPENED"
 
 
+class NoteVisibility(StrEnum):
+    PUBLIC = "public"  # visible to the customer too
+    INTERNAL = "internal"  # staff and technicians only
+
+
 class AssignmentStatus(StrEnum):
     SCHEDULED = "SCHEDULED"
     ACCEPTED = "ACCEPTED"

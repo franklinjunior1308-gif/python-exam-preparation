@@ -5,6 +5,7 @@ one throw-away database. Nothing here ever touches the development database.
 """
 
 import os
+import tempfile
 from collections.abc import Iterator
 from datetime import UTC, datetime, time, timedelta
 from zoneinfo import ZoneInfo
@@ -14,6 +15,8 @@ import pytest
 TEST_URL = os.environ.get("TEST_DATABASE_URL")
 if TEST_URL:
     os.environ["DATABASE_URL"] = TEST_URL
+# uploaded test photos go to a throw-away folder, never to the real upload volume
+os.environ["UPLOAD_DIR"] = tempfile.mkdtemp(prefix="fixflow-test-uploads-")
 
 TZ = ZoneInfo("Asia/Bishkek")
 PASSWORD = "Test-Pass-1!"
