@@ -223,3 +223,28 @@ export type InventoryItem = {
   is_active: boolean;
   low_stock: boolean;
 };
+
+export type MaintenancePlan = {
+  id: number;
+  asset_id: number;
+  asset_name: string;
+  category_id: number;
+  title: string;
+  description: string;
+  priority: Priority;
+  frequency: "WEEKLY" | "MONTHLY";
+  first_date: string;
+  is_active: boolean;
+  next_date: string | null;
+  generated_count: number;
+};
+
+export type AssetSummary = {
+  asset_id: number;
+  code: string;
+  name: string;
+  status: string;
+  open_requests: number;
+  last_completed_at: string | null;
+  next_planned: string | null;
+};
