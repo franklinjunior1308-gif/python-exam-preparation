@@ -129,7 +129,16 @@ flutter build apk --debug
 If Gradle still hangs on a dependency download, run the build in the background and watch the log;
 the connection is slow (~0.5 MB/s) and some hosts stall - restart the build, caches are kept.
 
-## AFTER THE WINDOWS REBOOT (`netsh winsock reset`, done by the user) - do this first
+## FOUND: Java loopback workaround (needed for every Gradle/Flutter Android build in a new PowerShell)
+`netsh winsock reset` + reboot did not fix it. Real cause: the JDK's `Pipe.open()` uses a Unix-domain
+socket file in `%TEMP%`, and the temp path contains spaces (`ASUS ROG STRIX`). Fix = short temp dir:
+```powershell
+New-Item -ItemType Directory -Force C:\dev\tmp | Out-Null
+$env:JAVA_TOOL_OPTIONS = "-Djdk.net.unixdomain.tmpdir=C:\dev\tmp -Djava.net.preferIPv4Stack=true"
+```
+Set it in the same PowerShell before `flutter build apk --debug` (verified: bind ok / pipe ok / selector ok).
+
+## AFTER THE WINDOWS REBOOT (`netsh winsock reset`, done by the user) - historical notes
 Why: `flutter build apk --debug` fails with `java.io.IOException: Unable to establish loopback connection`
 (`Pipe.open()` fails in the JDK although plain sockets work). Gradle is installed and extracted
 (`~/.gradle/wrapper/dists/gradle-9.5.0-all/...`), so only the loopback problem blocks the APK.
