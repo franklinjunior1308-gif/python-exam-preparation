@@ -54,13 +54,20 @@ class AppState extends ChangeNotifier {
   bool get needsOrganization => signedIn && session!.orgId == null;
   Membership? get membership => session?.membership;
   int get unreadNotifications => notifications.where((n) => n.unread).length;
-  int get waitingCount => queue.where((i) => i.state == QueueState.pending).length;
-  int get attentionCount => queue.where((i) => i.state != QueueState.pending).length;
+  int get waitingCount =>
+      queue.where((i) => i.state == QueueState.pending).length;
+  int get attentionCount =>
+      queue.where((i) => i.state != QueueState.pending).length;
 
   ApiClient? get api {
     final s = session;
     if (s == null) return null;
-    return ApiClient(baseUrl: s.serverUrl, client: httpClient, token: s.token, orgId: s.orgId);
+    return ApiClient(
+      baseUrl: s.serverUrl,
+      client: httpClient,
+      token: s.token,
+      orgId: s.orgId,
+    );
   }
 
   // ------------------------------------------------------------------ start-up
@@ -96,13 +103,20 @@ class AppState extends ChangeNotifier {
   }
 
   // ------------------------------------------------------------------ sign in / out
-  Future<String> savedServerUrl() async => await store.getPref('server') ?? defaultServerUrl;
+  Future<String> savedServerUrl() async =>
+      await store.getPref('server') ?? defaultServerUrl;
 
-  Future<LoginOutcome> login(String serverUrl, String email, String password) async {
+  Future<LoginOutcome> login(
+    String serverUrl,
+    String email,
+    String password,
+  ) async {
     final url = serverUrl.trim().replaceAll(RegExp(r'/+$'), '');
     final anonymous = ApiClient(baseUrl: url, client: httpClient);
-    final auth = await anonymous.post('auth/login', body: {'email': email.trim(), 'password': password})
-        as Map<String, dynamic>;
+    final auth = await anonymous.post(
+      'auth/login',
+      body: {'email': email.trim(), 'password': password},
+    ) as Map<String, dynamic>;
     final token = auth['access_token'] as String;
 
     final authed = ApiClient(baseUrl: url, client: httpClient, token: token);
@@ -131,7 +145,9 @@ class AppState extends ChangeNotifier {
     await store.saveSession(session!);
     notifyListeners();
     if (session!.orgId != null) unawaited(refresh());
-    return session!.orgId == null ? LoginOutcome.needsOrganization : LoginOutcome.signedIn;
+    return session!.orgId == null
+        ? LoginOutcome.needsOrganization
+        : LoginOutcome.signedIn;
   }
 
   Future<void> selectOrganization(int organizationId) async {
@@ -190,7 +206,9 @@ class AppState extends ChangeNotifier {
     notifyListeners();
     try {
       final raw = await client.get('my/tasks') as List;
-      final fresh = raw.map((e) => Task.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+      final fresh = raw
+          .map((e) => Task.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
       final now = DateTime.now().toUtc();
       await store.replaceTasks(fresh, syncedAt: now);
       tasks = await store.loadTasks();
@@ -242,7 +260,9 @@ class AppState extends ChangeNotifier {
     if (client == null) return;
     try {
       final raw = await client.get('my/tasks') as List;
-      final fresh = raw.map((e) => Task.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+      final fresh = raw
+          .map((e) => Task.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
       await store.replaceTasks(fresh, syncedAt: DateTime.now().toUtc());
       tasks = await store.loadTasks();
       notifyListeners();
@@ -260,7 +280,11 @@ class AppState extends ChangeNotifier {
     return bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
   }
 
-  Future<void> enqueueNote(int requestId, String body, {required bool internal}) async {
+  Future<void> enqueueNote(
+    int requestId,
+    String body, {
+    required bool internal,
+  }) async {
     final item = QueueItem(
       id: newCommandId(),
       type: QueueType.note,
@@ -277,7 +301,11 @@ class AppState extends ChangeNotifier {
 
   /// Copies the picked photo into app storage first: the picker's temp file may be cleaned up
   /// before the connection comes back (MOB-04: the queue must survive restarts).
-  Future<void> enqueuePhoto(int requestId, String sourcePath, {required String purpose}) async {
+  Future<void> enqueuePhoto(
+    int requestId,
+    String sourcePath, {
+    required String purpose,
+  }) async {
     await photosDir.create(recursive: true);
     final id = newCommandId();
     final ext = p.extension(sourcePath).toLowerCase();
@@ -299,17 +327,19 @@ class AppState extends ChangeNotifier {
 
   Future<void> retryItem(String id) async {
     final item = queue.firstWhere((i) => i.id == id);
-    await store.putQueueItem(QueueItem(
-      id: item.id,
-      type: item.type,
-      requestId: item.requestId,
-      createdAt: item.createdAt,
-      body: item.body,
-      visibility: item.visibility,
-      filePath: item.filePath,
-      purpose: item.purpose,
-      attempts: item.attempts,
-    )); // back to pending, error cleared
+    await store.putQueueItem(
+      QueueItem(
+        id: item.id,
+        type: item.type,
+        requestId: item.requestId,
+        createdAt: item.createdAt,
+        body: item.body,
+        visibility: item.visibility,
+        filePath: item.filePath,
+        purpose: item.purpose,
+        attempts: item.attempts,
+      ),
+    ); // back to pending, error cleared
     queue = await store.loadQueue();
     notifyListeners();
     await runSync();
@@ -330,12 +360,15 @@ class AppState extends ChangeNotifier {
     if (file.existsSync()) file.deleteSync();
   }
 
-  List<QueueItem> queueFor(int requestId) => queue.where((i) => i.requestId == requestId).toList();
+  List<QueueItem> queueFor(int requestId) =>
+      queue.where((i) => i.requestId == requestId).toList();
 
   // ------------------------------------------------------------------ online-only actions (MOB-08)
   Future<void> _online(Future<void> Function(ApiClient api) call) async {
     final client = api;
-    if (client == null) throw ApiException(401, 'session_expired', 'Not signed in');
+    if (client == null) {
+      throw ApiException(401, 'session_expired', 'Not signed in');
+    }
     try {
       await call(client);
       _markOnline(true);
@@ -348,39 +381,58 @@ class AppState extends ChangeNotifier {
     await _refreshTasksOnly();
   }
 
-  Future<void> transition(Task task, String target, {String? reason}) => _online((api) async {
-        await api.post('requests/${task.requestId}/transitions',
-            body: {'to_status': target, 'reason': ?reason});
+  Future<void> transition(Task task, String target, {String? reason}) =>
+      _online((api) async {
+        await api.post(
+          'requests/${task.requestId}/transitions',
+          body: {'to_status': target, 'reason': ?reason},
+        );
       });
 
   Future<void> decline(Task task, {String? reason}) => _online((api) async {
-        await api.post('assignments/${task.assignmentId}/decline', body: {'reason': reason});
-      });
+    await api.post(
+      'assignments/${task.assignmentId}/decline',
+      body: {'reason': reason},
+    );
+  });
 
-  Future<void> complete(Task task, String summary, String commandId) => _online((api) async {
-        await api.post('requests/${task.requestId}/complete',
-            body: {'summary': summary.trim(), 'client_command_id': commandId});
+  Future<void> complete(Task task, String summary, String commandId) =>
+      _online((api) async {
+        await api.post(
+          'requests/${task.requestId}/complete',
+          body: {'summary': summary.trim(), 'client_command_id': commandId},
+        );
       });
 
   // ------------------------------------------------------------------ read-through helpers
   Future<List<RemoteNote>> loadNotes(int requestId) async {
     final raw = await api!.get('requests/$requestId/notes') as List;
-    return raw.map((e) => RemoteNote.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+    return raw
+        .map((e) => RemoteNote.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
   }
 
   Future<List<RemoteAttachment>> loadAttachments(int requestId) async {
     final raw = await api!.get('requests/$requestId/attachments') as List;
-    return raw.map((e) => RemoteAttachment.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+    return raw
+        .map(
+          (e) => RemoteAttachment.fromJson(Map<String, dynamic>.from(e as Map)),
+        )
+        .toList();
   }
 
   Future<List<InventoryItem>> loadInventory() async {
     final raw = await api!.get('inventory') as List;
-    return raw.map((e) => InventoryItem.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+    return raw
+        .map((e) => InventoryItem.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
   }
 
   Future<List<MaterialUse>> loadUsages(int requestId) async {
     final raw = await api!.get('requests/$requestId/materials') as List;
-    return raw.map((e) => MaterialUse.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+    return raw
+        .map((e) => MaterialUse.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList();
   }
 
   /// Total of the customer-approved estimate in tyiyn, or null when none is approved (EST-05).
@@ -394,22 +446,33 @@ class AppState extends ChangeNotifier {
   }
 
   /// Writes material off a request. Online only (MOB-08); the command id makes a retry harmless.
-  Future<void> useMaterial(Task task, int itemId, String quantity, String commandId) =>
-      _online((api) async {
-        await api.post('requests/${task.requestId}/materials', body: {
-          'item_id': itemId,
-          'quantity': quantity,
-          'client_command_id': commandId,
-        });
-      });
+  Future<void> useMaterial(
+    Task task,
+    int itemId,
+    String quantity,
+    String commandId,
+  ) => _online((api) async {
+    await api.post(
+      'requests/${task.requestId}/materials',
+      body: {
+        'item_id': itemId,
+        'quantity': quantity,
+        'client_command_id': commandId,
+      },
+    );
+  });
 
   Future<void> loadNotifications() async {
     final client = api;
     if (client == null || session?.orgId == null) return;
     try {
       final raw = await client.get('notifications') as List;
-      notifications =
-          raw.map((e) => NotificationItem.fromJson(Map<String, dynamic>.from(e as Map))).toList();
+      notifications = raw
+          .map(
+            (e) =>
+                NotificationItem.fromJson(Map<String, dynamic>.from(e as Map)),
+          )
+          .toList();
       notifyListeners();
     } on ApiException {
       // the inbox is simply stale until the next successful refresh
@@ -417,9 +480,9 @@ class AppState extends ChangeNotifier {
   }
 
   Future<void> markAllRead() => _online((api) async {
-        await api.post('notifications/read-all');
-        await loadNotifications();
-      });
+    await api.post('notifications/read-all');
+    await loadNotifications();
+  });
 
   void clearNotice() {
     notice = null;

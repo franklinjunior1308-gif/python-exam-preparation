@@ -18,33 +18,34 @@ class Fx {
   static const orange = Color(0xFFFB923C);
 
   static Color statusColor(String status) => switch (status) {
-        'SCHEDULED' => accent,
-        'ACCEPTED' => violet,
-        'IN_PROGRESS' => warn,
-        'BLOCKED' => orange,
-        'COMPLETED' => ok,
-        _ => muted,
-      };
+    'SCHEDULED' => accent,
+    'ACCEPTED' => violet,
+    'IN_PROGRESS' => warn,
+    'BLOCKED' => orange,
+    'COMPLETED' => ok,
+    _ => muted,
+  };
 
   static Color priorityColor(String priority) => switch (priority) {
-        'HIGH' => danger,
-        'NORMAL' => warn,
-        _ => ok,
-      };
+    'HIGH' => danger,
+    'NORMAL' => warn,
+    _ => ok,
+  };
 }
 
 ThemeData buildTheme() {
-  final scheme = ColorScheme.fromSeed(
-    seedColor: Fx.primary,
-    brightness: Brightness.dark,
-  ).copyWith(
-    primary: Fx.primary,
-    onPrimary: const Color(0xFF031C26),
-    secondary: Fx.accent,
-    surface: Fx.surface,
-    onSurface: Fx.text,
-    error: Fx.danger,
-  );
+  final scheme =
+      ColorScheme.fromSeed(
+        seedColor: Fx.primary,
+        brightness: Brightness.dark,
+      ).copyWith(
+        primary: Fx.primary,
+        onPrimary: const Color(0xFF031C26),
+        secondary: Fx.accent,
+        surface: Fx.surface,
+        onSurface: Fx.text,
+        error: Fx.danger,
+      );
   return ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,

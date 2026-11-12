@@ -1,7 +1,12 @@
 // Plain data classes shared by storage, network and UI. Everything is JSON-serializable so it
 // can be kept in the local database and rebuilt after the app restarts (MOB-04).
 
-const activeAssignmentStatuses = ['SCHEDULED', 'ACCEPTED', 'IN_PROGRESS', 'BLOCKED'];
+const activeAssignmentStatuses = [
+  'SCHEDULED',
+  'ACCEPTED',
+  'IN_PROGRESS',
+  'BLOCKED',
+];
 
 class Membership {
   Membership({
@@ -17,18 +22,18 @@ class Membership {
   final String role;
 
   factory Membership.fromJson(Map<String, dynamic> json) => Membership(
-        organizationId: json['organization_id'] as int,
-        organizationName: json['organization_name'] as String,
-        timezone: json['timezone'] as String,
-        role: json['role'] as String,
-      );
+    organizationId: json['organization_id'] as int,
+    organizationName: json['organization_name'] as String,
+    timezone: json['timezone'] as String,
+    role: json['role'] as String,
+  );
 
   Map<String, dynamic> toJson() => {
-        'organization_id': organizationId,
-        'organization_name': organizationName,
-        'timezone': timezone,
-        'role': role,
-      };
+    'organization_id': organizationId,
+    'organization_name': organizationName,
+    'timezone': timezone,
+    'role': role,
+  };
 }
 
 /// What we remember about the signed-in user. The token is kept so queued work survives restarts.
@@ -60,37 +65,42 @@ class Session {
     return null;
   }
 
-  Session copyWith({String? token, int? orgId, bool? needsLogin, String? serverUrl}) => Session(
-        serverUrl: serverUrl ?? this.serverUrl,
-        token: token ?? this.token,
-        userName: userName,
-        email: email,
-        memberships: memberships,
-        orgId: orgId ?? this.orgId,
-        needsLogin: needsLogin ?? this.needsLogin,
-      );
+  Session copyWith({
+    String? token,
+    int? orgId,
+    bool? needsLogin,
+    String? serverUrl,
+  }) => Session(
+    serverUrl: serverUrl ?? this.serverUrl,
+    token: token ?? this.token,
+    userName: userName,
+    email: email,
+    memberships: memberships,
+    orgId: orgId ?? this.orgId,
+    needsLogin: needsLogin ?? this.needsLogin,
+  );
 
   factory Session.fromJson(Map<String, dynamic> json) => Session(
-        serverUrl: json['server_url'] as String,
-        token: json['token'] as String,
-        userName: json['user_name'] as String,
-        email: json['email'] as String,
-        memberships: (json['memberships'] as List)
-            .map((e) => Membership.fromJson(Map<String, dynamic>.from(e as Map)))
-            .toList(),
-        orgId: json['org_id'] as int?,
-        needsLogin: json['needs_login'] as bool? ?? false,
-      );
+    serverUrl: json['server_url'] as String,
+    token: json['token'] as String,
+    userName: json['user_name'] as String,
+    email: json['email'] as String,
+    memberships: (json['memberships'] as List)
+        .map((e) => Membership.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList(),
+    orgId: json['org_id'] as int?,
+    needsLogin: json['needs_login'] as bool? ?? false,
+  );
 
   Map<String, dynamic> toJson() => {
-        'server_url': serverUrl,
-        'token': token,
-        'user_name': userName,
-        'email': email,
-        'memberships': memberships.map((m) => m.toJson()).toList(),
-        'org_id': orgId,
-        'needs_login': needsLogin,
-      };
+    'server_url': serverUrl,
+    'token': token,
+    'user_name': userName,
+    'email': email,
+    'memberships': memberships.map((m) => m.toJson()).toList(),
+    'org_id': orgId,
+    'needs_login': needsLogin,
+  };
 }
 
 class Task {
@@ -138,46 +148,46 @@ class Task {
   bool get isDone => assignmentStatus == 'COMPLETED';
 
   factory Task.fromJson(Map<String, dynamic> json) => Task(
-        assignmentId: json['assignment_id'] as int,
-        assignmentStatus: json['assignment_status'] as String,
-        startAt: DateTime.parse(json['start_at'] as String).toUtc(),
-        endAt: DateTime.parse(json['end_at'] as String).toUtc(),
-        timezone: json['timezone'] as String,
-        requestId: json['request_id'] as int,
-        title: json['title'] as String,
-        description: json['description'] as String,
-        priority: json['priority'] as String,
-        requestStatus: json['request_status'] as String,
-        allowedActions: (json['allowed_actions'] as List).cast<String>(),
-        categoryName: json['category_name'] as String,
-        propertyName: json['property_name'] as String,
-        propertyAddress: json['property_address'] as String,
-        contactInstructions: json['contact_instructions'] as String?,
-        assetLabel: json['asset_label'] as String?,
-        customerName: json['customer_name'] as String,
-        updatedAt: DateTime.parse(json['updated_at'] as String).toUtc(),
-      );
+    assignmentId: json['assignment_id'] as int,
+    assignmentStatus: json['assignment_status'] as String,
+    startAt: DateTime.parse(json['start_at'] as String).toUtc(),
+    endAt: DateTime.parse(json['end_at'] as String).toUtc(),
+    timezone: json['timezone'] as String,
+    requestId: json['request_id'] as int,
+    title: json['title'] as String,
+    description: json['description'] as String,
+    priority: json['priority'] as String,
+    requestStatus: json['request_status'] as String,
+    allowedActions: (json['allowed_actions'] as List).cast<String>(),
+    categoryName: json['category_name'] as String,
+    propertyName: json['property_name'] as String,
+    propertyAddress: json['property_address'] as String,
+    contactInstructions: json['contact_instructions'] as String?,
+    assetLabel: json['asset_label'] as String?,
+    customerName: json['customer_name'] as String,
+    updatedAt: DateTime.parse(json['updated_at'] as String).toUtc(),
+  );
 
   Map<String, dynamic> toJson() => {
-        'assignment_id': assignmentId,
-        'assignment_status': assignmentStatus,
-        'start_at': startAt.toIso8601String(),
-        'end_at': endAt.toIso8601String(),
-        'timezone': timezone,
-        'request_id': requestId,
-        'title': title,
-        'description': description,
-        'priority': priority,
-        'request_status': requestStatus,
-        'allowed_actions': allowedActions,
-        'category_name': categoryName,
-        'property_name': propertyName,
-        'property_address': propertyAddress,
-        'contact_instructions': contactInstructions,
-        'asset_label': assetLabel,
-        'customer_name': customerName,
-        'updated_at': updatedAt.toIso8601String(),
-      };
+    'assignment_id': assignmentId,
+    'assignment_status': assignmentStatus,
+    'start_at': startAt.toIso8601String(),
+    'end_at': endAt.toIso8601String(),
+    'timezone': timezone,
+    'request_id': requestId,
+    'title': title,
+    'description': description,
+    'priority': priority,
+    'request_status': requestStatus,
+    'allowed_actions': allowedActions,
+    'category_name': categoryName,
+    'property_name': propertyName,
+    'property_address': propertyAddress,
+    'contact_instructions': contactInstructions,
+    'asset_label': assetLabel,
+    'customer_name': customerName,
+    'updated_at': updatedAt.toIso8601String(),
+  };
 }
 
 enum QueueType { note, photo }
@@ -218,51 +228,55 @@ class QueueItem {
   final String? error;
   final String? conflictCode;
 
-  QueueItem copyWith({QueueState? state, int? attempts, String? error, String? conflictCode}) =>
-      QueueItem(
-        id: id,
-        type: type,
-        requestId: requestId,
-        createdAt: createdAt,
-        body: body,
-        visibility: visibility,
-        filePath: filePath,
-        purpose: purpose,
-        state: state ?? this.state,
-        attempts: attempts ?? this.attempts,
-        error: error ?? this.error,
-        conflictCode: conflictCode ?? this.conflictCode,
-      );
+  QueueItem copyWith({
+    QueueState? state,
+    int? attempts,
+    String? error,
+    String? conflictCode,
+  }) => QueueItem(
+    id: id,
+    type: type,
+    requestId: requestId,
+    createdAt: createdAt,
+    body: body,
+    visibility: visibility,
+    filePath: filePath,
+    purpose: purpose,
+    state: state ?? this.state,
+    attempts: attempts ?? this.attempts,
+    error: error ?? this.error,
+    conflictCode: conflictCode ?? this.conflictCode,
+  );
 
   factory QueueItem.fromJson(Map<String, dynamic> json) => QueueItem(
-        id: json['id'] as String,
-        type: QueueType.values.byName(json['type'] as String),
-        requestId: json['request_id'] as int,
-        createdAt: DateTime.parse(json['created_at'] as String),
-        body: json['body'] as String?,
-        visibility: json['visibility'] as String? ?? 'public',
-        filePath: json['file_path'] as String?,
-        purpose: json['purpose'] as String? ?? 'evidence',
-        state: QueueState.values.byName(json['state'] as String? ?? 'pending'),
-        attempts: json['attempts'] as int? ?? 0,
-        error: json['error'] as String?,
-        conflictCode: json['conflict_code'] as String?,
-      );
+    id: json['id'] as String,
+    type: QueueType.values.byName(json['type'] as String),
+    requestId: json['request_id'] as int,
+    createdAt: DateTime.parse(json['created_at'] as String),
+    body: json['body'] as String?,
+    visibility: json['visibility'] as String? ?? 'public',
+    filePath: json['file_path'] as String?,
+    purpose: json['purpose'] as String? ?? 'evidence',
+    state: QueueState.values.byName(json['state'] as String? ?? 'pending'),
+    attempts: json['attempts'] as int? ?? 0,
+    error: json['error'] as String?,
+    conflictCode: json['conflict_code'] as String?,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'type': type.name,
-        'request_id': requestId,
-        'created_at': createdAt.toIso8601String(),
-        'body': body,
-        'visibility': visibility,
-        'file_path': filePath,
-        'purpose': purpose,
-        'state': state.name,
-        'attempts': attempts,
-        'error': error,
-        'conflict_code': conflictCode,
-      };
+    'id': id,
+    'type': type.name,
+    'request_id': requestId,
+    'created_at': createdAt.toIso8601String(),
+    'body': body,
+    'visibility': visibility,
+    'file_path': filePath,
+    'purpose': purpose,
+    'state': state.name,
+    'attempts': attempts,
+    'error': error,
+    'conflict_code': conflictCode,
+  };
 }
 
 class NotificationItem {
@@ -286,14 +300,17 @@ class NotificationItem {
 
   bool get unread => readAt == null;
 
-  factory NotificationItem.fromJson(Map<String, dynamic> json) => NotificationItem(
+  factory NotificationItem.fromJson(Map<String, dynamic> json) =>
+      NotificationItem(
         id: json['id'] as int,
         type: json['type'] as String,
         title: json['title'] as String,
         body: json['body'] as String? ?? '',
         requestId: json['request_id'] as int?,
         createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
-        readAt: json['read_at'] == null ? null : DateTime.parse(json['read_at'] as String),
+        readAt: json['read_at'] == null
+            ? null
+            : DateTime.parse(json['read_at'] as String),
       );
 }
 
@@ -315,23 +332,28 @@ class RemoteNote {
   final DateTime createdAt;
 
   factory RemoteNote.fromJson(Map<String, dynamic> json) => RemoteNote(
-        id: json['id'] as int,
-        author: json['author_name'] as String? ?? '',
-        body: json['body'] as String,
-        visibility: json['visibility'] as String,
-        kind: json['kind'] as String,
-        createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
-      );
+    id: json['id'] as int,
+    author: json['author_name'] as String? ?? '',
+    body: json['body'] as String,
+    visibility: json['visibility'] as String,
+    kind: json['kind'] as String,
+    createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
+  );
 }
 
 class RemoteAttachment {
-  RemoteAttachment({required this.id, required this.purpose, required this.createdAt});
+  RemoteAttachment({
+    required this.id,
+    required this.purpose,
+    required this.createdAt,
+  });
 
   final int id;
   final String purpose;
   final DateTime createdAt;
 
-  factory RemoteAttachment.fromJson(Map<String, dynamic> json) => RemoteAttachment(
+  factory RemoteAttachment.fromJson(Map<String, dynamic> json) =>
+      RemoteAttachment(
         id: json['id'] as int,
         purpose: json['purpose'] as String,
         createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
@@ -358,14 +380,14 @@ class InventoryItem {
   final bool lowStock;
 
   factory InventoryItem.fromJson(Map<String, dynamic> json) => InventoryItem(
-        id: json['id'] as int,
-        code: json['code'] as String,
-        name: json['name'] as String,
-        unit: json['unit'] as String,
-        stock: double.parse('${json['stock']}'),
-        unitPriceCents: json['unit_price_cents'] as int,
-        lowStock: json['low_stock'] as bool? ?? false,
-      );
+    id: json['id'] as int,
+    code: json['code'] as String,
+    name: json['name'] as String,
+    unit: json['unit'] as String,
+    stock: double.parse('${json['stock']}'),
+    unitPriceCents: json['unit_price_cents'] as int,
+    lowStock: json['low_stock'] as bool? ?? false,
+  );
 }
 
 /// Material already written off on a request (server record, price is a snapshot).
@@ -385,12 +407,12 @@ class MaterialUse {
   final DateTime createdAt;
 
   factory MaterialUse.fromJson(Map<String, dynamic> json) => MaterialUse(
-        id: json['id'] as int,
-        itemName: json['item_name'] as String? ?? '',
-        quantity: double.parse('${json['quantity']}'),
-        totalCents: json['total_cents'] as int? ?? 0,
-        createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
-      );
+    id: json['id'] as int,
+    itemName: json['item_name'] as String? ?? '',
+    quantity: double.parse('${json['quantity']}'),
+    totalCents: json['total_cents'] as int? ?? 0,
+    createdAt: DateTime.parse(json['created_at'] as String).toUtc(),
+  );
 }
 
 /// Money is kept in whole tyiyn (1 KGS = 100 tyiyn); never a double (DATA-04).

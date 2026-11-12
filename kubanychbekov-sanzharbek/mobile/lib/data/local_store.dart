@@ -12,8 +12,11 @@ class LocalStore {
   final Database _db;
 
   final StoreRef<String, Object?> _meta = StoreRef<String, Object?>('meta');
-  final StoreRef<int, Map<String, Object?>> _tasks = intMapStoreFactory.store('tasks');
-  final StoreRef<String, Map<String, Object?>> _queue = stringMapStoreFactory.store('queue');
+  final StoreRef<int, Map<String, Object?>> _tasks = intMapStoreFactory.store(
+    'tasks',
+  );
+  final StoreRef<String, Map<String, Object?>> _queue = stringMapStoreFactory
+      .store('queue');
 
   static Future<LocalStore> open(DatabaseFactory factory, String path) async =>
       LocalStore(await factory.openDatabase(path));
@@ -41,10 +44,14 @@ class LocalStore {
     }
   }
 
-  Future<String?> getPref(String key) async => (await _meta.record('pref:$key').get(_db)) as String?;
+  Future<String?> getPref(String key) async =>
+      (await _meta.record('pref:$key').get(_db)) as String?;
 
   // ---- tasks (a snapshot of the last successful sync)
-  Future<void> replaceTasks(List<Task> tasks, {required DateTime syncedAt}) async {
+  Future<void> replaceTasks(
+    List<Task> tasks, {
+    required DateTime syncedAt,
+  }) async {
     await _db.transaction((txn) async {
       await _tasks.delete(txn);
       for (final task in tasks) {
@@ -56,8 +63,11 @@ class LocalStore {
 
   Future<List<Task>> loadTasks() async {
     final records = await _tasks.find(_db);
-    final tasks = records.map((r) => Task.fromJson(Map<String, dynamic>.from(r.value))).toList()
-      ..sort((a, b) => a.startAt.compareTo(b.startAt));
+    final tasks =
+        records
+            .map((r) => Task.fromJson(Map<String, dynamic>.from(r.value)))
+            .toList()
+          ..sort((a, b) => a.startAt.compareTo(b.startAt));
     return tasks;
   }
 
@@ -67,14 +77,18 @@ class LocalStore {
   }
 
   // ---- offline queue
-  Future<void> putQueueItem(QueueItem item) => _queue.record(item.id).put(_db, item.toJson());
+  Future<void> putQueueItem(QueueItem item) =>
+      _queue.record(item.id).put(_db, item.toJson());
 
   Future<void> deleteQueueItem(String id) => _queue.record(id).delete(_db);
 
   Future<List<QueueItem>> loadQueue() async {
     final records = await _queue.find(_db);
-    final items = records.map((r) => QueueItem.fromJson(Map<String, dynamic>.from(r.value))).toList()
-      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    final items =
+        records
+            .map((r) => QueueItem.fromJson(Map<String, dynamic>.from(r.value)))
+            .toList()
+          ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
     return items;
   }
 

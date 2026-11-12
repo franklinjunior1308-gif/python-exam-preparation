@@ -17,11 +17,14 @@ const Map<String, String> en = {
   'login.email': 'Email',
   'login.password': 'Password',
   'login.server': 'Server address',
-  'login.serverHint': 'Emulator: http://10.0.2.2:8000. Phone: http://<computer IP>:8000',
+  'login.serverHint':
+      'Emulator: http://10.0.2.2:8000. Phone: http://<computer IP>:8000',
   'login.submit': 'Sign in',
   'login.demo': 'Demo technician accounts (demo environment only)',
-  'login.expired': 'Your session has expired. Sign in again; your queued work is safe.',
-  'login.noTechnicianRole': 'This account has no technician role in any organization.',
+  'login.expired':
+      'Your session has expired. Sign in again; your queued work is safe.',
+  'login.noTechnicianRole':
+      'This account has no technician role in any organization.',
   'org.title': 'Choose an organization',
   'org.subtitle': 'Pick the organization you work in today',
   'tabs.tasks': 'Tasks',
@@ -71,7 +74,8 @@ const Map<String, String> en = {
   'action.reason': 'Reason',
   'action.reasonRequired': 'A reason is required.',
   'action.declineTitle': 'Decline this task?',
-  'action.declineText': 'The dispatcher will be told and the task will be reassigned.',
+  'action.declineText':
+      'The dispatcher will be told and the task will be reassigned.',
   'action.done': 'Done',
   'note.title': 'New note',
   'note.hint': 'What did you find or do?',
@@ -82,10 +86,12 @@ const Map<String, String> en = {
   'photo.gallery': 'Choose from gallery',
   'photo.before': 'Before',
   'photo.after': 'After',
-  'photo.saved': 'Photo saved on this phone and will be uploaded automatically.',
+  'photo.saved':
+      'Photo saved on this phone and will be uploaded automatically.',
   'complete.title': 'Complete work',
   'complete.summary': 'Final note',
-  'complete.summaryHint': 'At least 20 characters: what was done, results, remaining issues.',
+  'complete.summaryHint':
+      'At least 20 characters: what was done, results, remaining issues.',
   'complete.photos': 'Photos on the server: {n}. Waiting to sync: {m}.',
   'complete.needSync': 'Waiting photos must reach the server first. Open the Queue tab and sync.',
   'complete.submit': 'Complete work',
@@ -101,8 +107,7 @@ const Map<String, String> en = {
   'queue.photo': 'Photo',
   'queue.queuedAt': 'Queued {time}',
   'queue.syncNow': 'Sync now',
-  'queue.conflictHelp':
-      'The request changed while you were offline. Your draft is kept until you decide.',
+  'queue.conflictHelp': 'The request changed while you were offline. Your draft is kept until you decide.',
   'queue.deleteTitle': 'Delete this item?',
   'queue.deleteText': 'It has not been delivered and will be lost.',
   'queue.synced': 'Sent {n} item(s).',
@@ -118,14 +123,16 @@ const Map<String, String> en = {
   'profile.language': 'Language',
   'profile.server': 'Server',
   'profile.signOut': 'Sign out',
-  'profile.signOutWarn': '{n} item(s) are still waiting to be sent. They stay on this phone.',
+  'profile.signOutWarn':
+      '{n} item(s) are still waiting to be sent. They stay on this phone.',
   'err.network': 'Cannot reach the server. Check your connection.',
   'err.invalid_credentials': 'Wrong email or password.',
   'err.account_disabled': 'This account is disabled.',
   'err.session_expired': 'Your session has expired.',
   'err.invalid_token': 'Your session has expired.',
   'err.not_a_member': 'You do not have access to this organization.',
-  'err.state_conflict': 'The task was changed by someone else. Refresh and try again.',
+  'err.state_conflict':
+      'The task was changed by someone else. Refresh and try again.',
   'err.transition_forbidden': 'You are not allowed to do this.',
   'err.invalid_transition': 'This is not possible from the current status.',
   'err.reason_required': 'A reason is required.',
@@ -138,7 +145,8 @@ const Map<String, String> en = {
   'err.file_too_large': 'The photo is larger than 10 MB.',
   'err.file_missing': 'The photo file is no longer on the phone.',
   'err.work_started': 'Work has already started.',
-  'err.estimate_not_approved': 'The customer must approve the estimate before work can start.',
+  'err.estimate_not_approved':
+      'The customer must approve the estimate before work can start.',
   'action.materials': 'Used materials',
   'materials.title': 'Used materials',
   'materials.search': 'Search material',
@@ -153,10 +161,13 @@ const Map<String, String> en = {
   'materials.badQuantity': 'Enter a positive number (up to 3 decimals).',
   'detail.estimate': 'Approved estimate',
   'err.insufficient_stock': 'Not enough of this material in stock.',
-  'err.work_not_in_progress': 'Materials can be written off only while work is in progress.',
-  'err.idempotency_conflict': 'This write-off was already recorded differently. Reload and check.',
+  'err.work_not_in_progress':
+      'Materials can be written off only while work is in progress.',
+  'err.idempotency_conflict':
+      'This write-off was already recorded differently. Reload and check.',
   'err.item_not_found': 'Material not found.',
-  'err.too_many_attempts': 'Too many failed sign-in attempts. Wait a few minutes and try again.',
+  'err.too_many_attempts':
+      'Too many failed sign-in attempts. Wait a few minutes and try again.',
   'err.generic': 'The operation failed. Please try again.',
 };
 
@@ -175,11 +186,13 @@ const Map<String, String> ru = {
   'login.email': 'Email',
   'login.password': 'Пароль',
   'login.server': 'Адрес сервера',
-  'login.serverHint': 'Эмулятор: http://10.0.2.2:8000. Телефон: http://<IP компьютера>:8000',
+  'login.serverHint':
+      'Эмулятор: http://10.0.2.2:8000. Телефон: http://<IP компьютера>:8000',
   'login.submit': 'Войти',
   'login.demo': 'Демо-аккаунты техников (только для демо-среды)',
   'login.expired': 'Сессия истекла. Войдите снова, очередь не потеряна.',
-  'login.noTechnicianRole': 'У этой учётной записи нет роли техника ни в одной организации.',
+  'login.noTechnicianRole':
+      'У этой учётной записи нет роли техника ни в одной организации.',
   'org.title': 'Выберите организацию',
   'org.subtitle': 'Выберите организацию, в которой работаете сегодня',
   'tabs.tasks': 'Задания',
@@ -193,8 +206,7 @@ const Map<String, String> ru = {
   'tasks.empty': 'Здесь пока нет заданий.',
   'tasks.lastSync': 'Синхронизировано {time}',
   'tasks.neverSynced': 'Ещё не синхронизировано',
-  'offline.banner':
-      'Офлайн-режим. Задания читаются с телефона, ваша работа сохраняется локально.',
+  'offline.banner': 'Офлайн-режим. Задания читаются с телефона, ваша работа сохраняется локально.',
   'offline.sync': 'Синхронизировать ({n})',
   'offline.onlineOnly': 'Для этого действия нужно подключение к серверу.',
   'status.SCHEDULED': 'Назначено',
@@ -230,12 +242,14 @@ const Map<String, String> ru = {
   'action.reason': 'Причина',
   'action.reasonRequired': 'Нужно указать причину.',
   'action.declineTitle': 'Отказаться от задания?',
-  'action.declineText': 'Диспетчер получит уведомление, задание будет назначено другому.',
+  'action.declineText':
+      'Диспетчер получит уведомление, задание будет назначено другому.',
   'action.done': 'Готово',
   'note.title': 'Новая заметка',
   'note.hint': 'Что вы обнаружили или сделали?',
   'note.internal': 'Внутренняя (заказчик не видит)',
-  'note.saved': 'Заметка сохранена на телефоне и будет отправлена автоматически.',
+  'note.saved':
+      'Заметка сохранена на телефоне и будет отправлена автоматически.',
   'photo.title': 'Добавить фото',
   'photo.camera': 'Сделать снимок',
   'photo.gallery': 'Выбрать из галереи',
@@ -244,7 +258,8 @@ const Map<String, String> ru = {
   'photo.saved': 'Фото сохранено на телефоне и будет загружено автоматически.',
   'complete.title': 'Завершение работы',
   'complete.summary': 'Итоговая заметка',
-  'complete.summaryHint': 'Не менее 20 символов: что сделано, результат, что осталось.',
+  'complete.summaryHint':
+      'Не менее 20 символов: что сделано, результат, что осталось.',
   'complete.photos': 'Фото на сервере: {n}. Ожидают синхронизации: {m}.',
   'complete.needSync': 'Сначала фото должны дойти до сервера. Откройте «Очередь» и синхронизируйте.',
   'complete.submit': 'Завершить работу',
@@ -276,7 +291,8 @@ const Map<String, String> ru = {
   'profile.language': 'Язык',
   'profile.server': 'Сервер',
   'profile.signOut': 'Выйти',
-  'profile.signOutWarn': 'Ещё не отправлено элементов: {n}. Они останутся на телефоне.',
+  'profile.signOutWarn':
+      'Ещё не отправлено элементов: {n}. Они останутся на телефоне.',
   'err.network': 'Нет связи с сервером. Проверьте подключение.',
   'err.invalid_credentials': 'Неверный email или пароль.',
   'err.account_disabled': 'Эта учётная запись отключена.',
@@ -287,7 +303,8 @@ const Map<String, String> ru = {
   'err.transition_forbidden': 'У вас нет прав на это действие.',
   'err.invalid_transition': 'Это невозможно из текущего статуса.',
   'err.reason_required': 'Нужно указать причину.',
-  'err.summary_too_short': 'Итоговая заметка должна быть не короче 20 символов.',
+  'err.summary_too_short':
+      'Итоговая заметка должна быть не короче 20 символов.',
   'err.photo_required': 'Перед завершением загрузите хотя бы одно фото.',
   'err.assignment_changed': 'Это задание больше не назначено вам.',
   'err.request_closed': 'Заявка закрыта.',
@@ -296,7 +313,8 @@ const Map<String, String> ru = {
   'err.file_too_large': 'Фото больше 10 МБ.',
   'err.file_missing': 'Файла фото больше нет на телефоне.',
   'err.work_started': 'Работа уже началась.',
-  'err.estimate_not_approved': 'Заказчик должен одобрить смету, прежде чем можно начать работу.',
+  'err.estimate_not_approved':
+      'Заказчик должен одобрить смету, прежде чем можно начать работу.',
   'action.materials': 'Использованные материалы',
   'materials.title': 'Использованные материалы',
   'materials.search': 'Поиск материала',
@@ -308,13 +326,18 @@ const Map<String, String> ru = {
   'materials.quantity': 'Количество ({unit})',
   'materials.writeOff': 'Списать',
   'materials.done': 'Списано.',
-  'materials.badQuantity': 'Введите положительное число (до 3 знаков после запятой).',
+  'materials.badQuantity':
+      'Введите положительное число (до 3 знаков после запятой).',
   'detail.estimate': 'Одобренная смета',
-  'err.insufficient_stock': 'Этого материала нет в нужном количестве на складе.',
-  'err.work_not_in_progress': 'Материалы списываются только пока работа выполняется.',
-  'err.idempotency_conflict': 'Это списание уже записано иначе. Обновите и проверьте.',
+  'err.insufficient_stock':
+      'Этого материала нет в нужном количестве на складе.',
+  'err.work_not_in_progress':
+      'Материалы списываются только пока работа выполняется.',
+  'err.idempotency_conflict':
+      'Это списание уже записано иначе. Обновите и проверьте.',
   'err.item_not_found': 'Материал не найден.',
-  'err.too_many_attempts': 'Слишком много неудачных попыток входа. Подождите несколько минут.',
+  'err.too_many_attempts':
+      'Слишком много неудачных попыток входа. Подождите несколько минут.',
   'err.generic': 'Операция не удалась. Повторите попытку.',
 };
 
@@ -331,7 +354,12 @@ String trError(String lang, String code) {
 }
 
 /// Show a UTC instant in the organization's timezone (DATA-03), never the phone's zone.
-String formatWhen(DateTime utc, String timezone, String lang, {bool dateOnly = false}) {
+String formatWhen(
+  DateTime utc,
+  String timezone,
+  String lang, {
+  bool dateOnly = false,
+}) {
   final tz.Location location = tz.getLocation(timezone);
   final local = tz.TZDateTime.from(utc, location);
   final locale = lang == 'ru' ? 'ru' : 'en_GB';

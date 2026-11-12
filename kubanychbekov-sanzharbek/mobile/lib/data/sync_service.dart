@@ -45,7 +45,9 @@ class SyncService {
     try {
       final items = await _store.loadQueue();
       for (final item in items) {
-        if (item.state != QueueState.pending) continue; // failed/conflict wait for the user
+        if (item.state != QueueState.pending) {
+          continue; // failed/conflict wait for the user
+        }
         try {
           await _deliver(api, item);
           await _store.deleteQueueItem(item.id);
@@ -53,29 +55,43 @@ class SyncService {
           sent++;
         } on ApiException catch (e) {
           if (e.isNetwork) {
-            await _store.putQueueItem(item.copyWith(attempts: item.attempts + 1));
-            return SyncResult(sent: sent, conflicts: conflicts, failed: failed, offline: true);
+            await _store.putQueueItem(
+              item.copyWith(attempts: item.attempts + 1),
+            );
+            return SyncResult(
+              sent: sent,
+              conflicts: conflicts,
+              failed: failed,
+              offline: true,
+            );
           }
           if (e.isUnauthorized) {
             return SyncResult(
-              sent: sent, conflicts: conflicts, failed: failed, unauthorized: true,
+              sent: sent,
+              conflicts: conflicts,
+              failed: failed,
+              unauthorized: true,
             );
           }
           if (e.isConflict || e.code == 'request_not_found') {
-            await _store.putQueueItem(item.copyWith(
-              state: QueueState.conflict,
-              attempts: item.attempts + 1,
-              error: e.message,
-              conflictCode: e.code,
-            ));
+            await _store.putQueueItem(
+              item.copyWith(
+                state: QueueState.conflict,
+                attempts: item.attempts + 1,
+                error: e.message,
+                conflictCode: e.code,
+              ),
+            );
             conflicts++;
           } else {
-            await _store.putQueueItem(item.copyWith(
-              state: QueueState.failed,
-              attempts: item.attempts + 1,
-              error: e.message,
-              conflictCode: e.code,
-            ));
+            await _store.putQueueItem(
+              item.copyWith(
+                state: QueueState.failed,
+                attempts: item.attempts + 1,
+                error: e.message,
+                conflictCode: e.code,
+              ),
+            );
             failed++;
           }
         }
@@ -89,11 +105,14 @@ class SyncService {
   Future<void> _deliver(ApiClient api, QueueItem item) async {
     switch (item.type) {
       case QueueType.note:
-        await api.post('requests/${item.requestId}/notes', body: {
-          'body': item.body,
-          'visibility': item.visibility,
-          'client_command_id': item.id,
-        });
+        await api.post(
+          'requests/${item.requestId}/notes',
+          body: {
+            'body': item.body,
+            'visibility': item.visibility,
+            'client_command_id': item.id,
+          },
+        );
       case QueueType.photo:
         await api.postFile(
           'requests/${item.requestId}/attachments',

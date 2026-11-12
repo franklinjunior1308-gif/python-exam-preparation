@@ -51,7 +51,7 @@ def test_access_log_is_one_json_line_without_secrets(caplog: pytest.LogCaptureFi
     line = next(
         r for r in records if getattr(r, "fields", {}).get("request_id") == "log-check-123456"
     )
-    fields = line.fields  # ty: ignore[unresolved-attribute]
+    fields = line.fields  # ty: ignore[missing-attribute]
     assert fields["method"] == "POST" and fields["path"] == "/api/v1/auth/login"
     assert fields["status"] in (401, 500)  # 500 only when no database is configured for the run
     assert "duration_ms" in fields

@@ -46,7 +46,9 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
   }
 
   Task? _task(AppState state) {
-    final found = state.tasks.where((t) => t.assignmentId == widget.assignmentId);
+    final found = state.tasks.where(
+      (t) => t.assignmentId == widget.assignmentId,
+    );
     return found.isEmpty ? null : found.first;
   }
 
@@ -64,7 +66,13 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
         _error = null;
       });
     } on ApiException catch (e) {
-      if (mounted) setState(() => _error = e.isNetwork ? context.t('offline.onlineOnly') : context.err(e));
+      if (mounted) {
+        setState(
+          () => _error = e.isNetwork
+              ? context.t('offline.onlineOnly')
+              : context.err(e),
+        );
+      }
     }
   }
 
@@ -80,20 +88,35 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setInner) => AlertDialog(
           title: Text(item.name),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text(context.t('materials.stock', {'n': item.stock, 'unit': item.unit}),
-                style: const TextStyle(color: Fx.muted)),
-            const SizedBox(height: 10),
-            TextField(
-              controller: controller,
-              autofocus: true,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              decoration: fieldDecoration(context.t('materials.quantity', {'unit': item.unit}),
-                  errorText: error),
-            ),
-          ]),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                context.t('materials.stock', {
+                  'n': item.stock,
+                  'unit': item.unit,
+                }),
+                style: const TextStyle(color: Fx.muted),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: controller,
+                autofocus: true,
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                decoration: fieldDecoration(
+                  context.t('materials.quantity', {'unit': item.unit}),
+                  errorText: error,
+                ),
+              ),
+            ],
+          ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: Text(context.t('common.cancel'))),
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(context.t('common.cancel')),
+            ),
             TextButton(
               onPressed: () {
                 final parsed = parseQuantity(controller.text);
@@ -116,7 +139,12 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
       if (mounted) showMessage(context, context.t('materials.done'));
       await _load();
     } on ApiException catch (e) {
-      if (mounted) showMessage(context, e.isNetwork ? context.t('offline.onlineOnly') : context.err(e));
+      if (mounted) {
+        showMessage(
+          context,
+          e.isNetwork ? context.t('offline.onlineOnly') : context.err(e),
+        );
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -128,62 +156,91 @@ class _MaterialsScreenState extends State<MaterialsScreen> {
     final tz = state.membership?.timezone ?? 'Asia/Bishkek';
     final query = _search.text.trim().toLowerCase();
     final items = (_items ?? [])
-        .where((i) => query.isEmpty || i.name.toLowerCase().contains(query) || i.code.toLowerCase().contains(query))
+        .where(
+          (i) =>
+              query.isEmpty ||
+              i.name.toLowerCase().contains(query) ||
+              i.code.toLowerCase().contains(query),
+        )
         .toList();
     return Scaffold(
       appBar: AppBar(title: Text(context.t('materials.title'))),
-      body: ListView(padding: const EdgeInsets.all(16), children: [
-        const OfflineBanner(),
-        if (_error != null)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Text(_error!, style: const TextStyle(color: Fx.danger)),
-          ),
-        TextField(
-          controller: _search,
-          onChanged: (_) => setState(() {}),
-          decoration: fieldDecoration(context.t('materials.search')).copyWith(
-            prefixIcon: const Icon(Icons.search),
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (_items == null && _error == null) const Center(child: CircularProgressIndicator()),
-        if (_items != null && items.isEmpty) EmptyState(context.t('materials.noMatches')),
-        for (final item in items)
-          FxCard(
-            onTap: state.online && !_busy ? () => _writeOff(item) : null,
-            child: Row(children: [
-              const Icon(Icons.inventory_2_outlined, color: Fx.primary),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(item.name, style: const TextStyle(fontWeight: FontWeight.w700)),
-                  Text(
-                    '${item.code} · ${context.t('materials.stock', {'n': item.stock, 'unit': item.unit})}'
-                    '${item.lowStock ? ' · ${context.t('materials.low')}' : ''}',
-                    style: TextStyle(color: item.lowStock ? Fx.orange : Fx.muted, fontSize: 12),
-                  ),
-                ]),
-              ),
-              Text(formatKgs(item.unitPriceCents), style: const TextStyle(color: Fx.muted, fontSize: 12)),
-            ]),
-          ),
-        const SizedBox(height: 16),
-        Text(context.t('materials.used'), style: const TextStyle(fontWeight: FontWeight.w700)),
-        const SizedBox(height: 6),
-        if (_usages.isEmpty)
-          Text(context.t('materials.none'), style: const TextStyle(color: Fx.muted))
-        else
-          for (final use in _usages)
-            ListTile(
-              dense: true,
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.check_circle_outline, color: Fx.ok),
-              title: Text('${use.itemName} × ${use.quantity}'),
-              subtitle: Text(formatWhen(use.createdAt, tz, state.lang)),
-              trailing: Text(formatKgs(use.totalCents)),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const OfflineBanner(),
+          if (_error != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(_error!, style: const TextStyle(color: Fx.danger)),
             ),
-      ]),
+          TextField(
+            controller: _search,
+            onChanged: (_) => setState(() {}),
+            decoration: fieldDecoration(context.t('materials.search'))
+                .copyWith(prefixIcon: const Icon(Icons.search)),
+          ),
+          const SizedBox(height: 12),
+          if (_items == null && _error == null)
+            const Center(child: CircularProgressIndicator()),
+          if (_items != null && items.isEmpty)
+            EmptyState(context.t('materials.noMatches')),
+          for (final item in items)
+            FxCard(
+              onTap: state.online && !_busy ? () => _writeOff(item) : null,
+              child: Row(
+                children: [
+                  const Icon(Icons.inventory_2_outlined, color: Fx.primary),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.name,
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        Text(
+                          '${item.code} · ${context.t('materials.stock', {'n': item.stock, 'unit': item.unit})}'
+                          '${item.lowStock ? ' · ${context.t('materials.low')}' : ''}',
+                          style: TextStyle(
+                            color: item.lowStock ? Fx.orange : Fx.muted,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Text(
+                    formatKgs(item.unitPriceCents),
+                    style: const TextStyle(color: Fx.muted, fontSize: 12),
+                  ),
+                ],
+              ),
+            ),
+          const SizedBox(height: 16),
+          Text(
+            context.t('materials.used'),
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 6),
+          if (_usages.isEmpty)
+            Text(
+              context.t('materials.none'),
+              style: const TextStyle(color: Fx.muted),
+            )
+          else
+            for (final use in _usages)
+              ListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.check_circle_outline, color: Fx.ok),
+                title: Text('${use.itemName} × ${use.quantity}'),
+                subtitle: Text(formatWhen(use.createdAt, tz, state.lang)),
+                trailing: Text(formatKgs(use.totalCents)),
+              ),
+        ],
+      ),
     );
   }
 }

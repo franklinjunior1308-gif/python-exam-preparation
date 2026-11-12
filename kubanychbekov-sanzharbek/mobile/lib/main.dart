@@ -24,8 +24,13 @@ Future<void> main() async {
   await initializeDateFormatting();
 
   final docs = await getApplicationDocumentsDirectory();
-  final store = await LocalStore.open(databaseFactoryIo, p.join(docs.path, 'fixflow.db'));
-  final deviceLang = ui.PlatformDispatcher.instance.locale.languageCode == 'ru' ? 'ru' : 'en';
+  final store = await LocalStore.open(
+    databaseFactoryIo,
+    p.join(docs.path, 'fixflow.db'),
+  );
+  final deviceLang = ui.PlatformDispatcher.instance.locale.languageCode == 'ru'
+      ? 'ru'
+      : 'en';
 
   final state = AppState(
     store: store,

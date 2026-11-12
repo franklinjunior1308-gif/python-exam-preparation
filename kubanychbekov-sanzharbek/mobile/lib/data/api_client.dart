@@ -17,7 +17,8 @@ class ApiException implements Exception {
 
   /// The job changed under the user's feet while offline (MOB-07).
   bool get isConflict =>
-      status == 409 && (code == 'assignment_changed' || code == 'request_closed');
+      status == 409 &&
+      (code == 'assignment_changed' || code == 'request_closed');
 
   @override
   String toString() => 'ApiException($status, $code, $message)';
@@ -44,9 +45,9 @@ class ApiClient {
       Uri.parse('$baseUrl/api/v1/$path').replace(queryParameters: query);
 
   Map<String, String> get _headers => {
-        if (token != null) 'Authorization': 'Bearer $token',
-        if (orgId != null) 'X-Organization-Id': '$orgId',
-      };
+    if (token != null) 'Authorization': 'Bearer $token',
+    if (orgId != null) 'X-Organization-Id': '$orgId',
+  };
 
   /// URL and headers for loading an image with Image.network.
   Uri fileUri(int attachmentId) => _uri('attachments/$attachmentId/file');
@@ -56,26 +57,25 @@ class ApiClient {
       _send(() => client.get(_uri(path, query), headers: _headers));
 
   Future<dynamic> post(String path, {Object? body}) => _send(
-        () => client.post(
-          _uri(path),
-          headers: {..._headers, 'Content-Type': 'application/json'},
-          body: jsonEncode(body ?? {}),
-        ),
-      );
+    () => client.post(
+      _uri(path),
+      headers: {..._headers, 'Content-Type': 'application/json'},
+      body: jsonEncode(body ?? {}),
+    ),
+  );
 
   /// Uploads one image file with the same stable `client_command_id` on every attempt.
   Future<dynamic> postFile(
     String path, {
     required String filePath,
     required Map<String, String> fields,
-  }) =>
-      _send(() async {
-        final request = http.MultipartRequest('POST', _uri(path))
-          ..headers.addAll(_headers)
-          ..fields.addAll(fields)
-          ..files.add(await http.MultipartFile.fromPath('file', filePath));
-        return http.Response.fromStream(await client.send(request));
-      });
+  }) => _send(() async {
+    final request = http.MultipartRequest('POST', _uri(path))
+      ..headers.addAll(_headers)
+      ..fields.addAll(fields)
+      ..files.add(await http.MultipartFile.fromPath('file', filePath));
+    return http.Response.fromStream(await client.send(request));
+  });
 
   Future<dynamic> _send(Future<http.Response> Function() call) async {
     final http.Response response;
@@ -89,7 +89,11 @@ class ApiClient {
       throw ApiException(0, 'network', 'No connection to the server');
     } on FileSystemException {
       // not a network problem: retrying can never help, so it must not look like "offline"
-      throw ApiException(400, 'file_missing', 'The photo file is no longer on the phone');
+      throw ApiException(
+        400,
+        'file_missing',
+        'The photo file is no longer on the phone',
+      );
     }
 
     final text = utf8.decode(response.bodyBytes);
@@ -107,7 +111,9 @@ class ApiClient {
     throw ApiException(
       response.statusCode,
       error is Map ? (error['code'] as String? ?? 'error') : 'error',
-      error is Map ? (error['message'] as String? ?? 'Request failed') : 'Request failed',
+      error is Map
+          ? (error['message'] as String? ?? 'Request failed')
+          : 'Request failed',
     );
   }
 }
