@@ -153,8 +153,5 @@ def rep():
     if output == 'Error':
         return output
     return '<br>'.join(output)
-# /free	free_drivers 
-# /earnings?name=	earnings
-# /best	best_driver
-# /report	report (
-# 
+
+# Hello World
