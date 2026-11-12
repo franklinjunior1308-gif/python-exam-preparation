@@ -166,7 +166,7 @@ to `~/.gradle/wrapper/dists/gradle-9.5.0-all/aca6g93cdtcf0oapcfka748qh/`, `tar -
    live updates). Never `git add -A`; commit only your own paths.
 2. DONE 2026-11-13 (fork 1): Android materials screen (`mobile/lib/ui/materials_screen.dart`, online-only write-off with
    stable command id, insufficient-stock error mapped en/ru) + approved estimate total on the task details; 28 Flutter
-   tests pass, `flutter analyze` clean; APK rebuild started. Fork 1 next: backend gaps (feedback, audit feed, login rate
+   tests pass, `flutter analyze` clean; APK rebuilt (app-debug.apk, 190 264 790 bytes, SHA-256 b0fecaab4daefad5d2c02d379b4431d26f3b9bff9bc5781a85cc8d70cce78909). Fork 1 next: backend gaps (feedback, audit feed, login rate
    limit, request-ID logs, live updates, LIFE-05), then `scripts/smoke.sh`, `docs/AI_USAGE.md`.
 3. After each module: `ruff`/`ty`, tests in Docker, commit locally, keep this file current.
 
