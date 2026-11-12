@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, type FormEvent, type ReactNode, useContext, useState } from "react";
 import { api } from "@/lib/api-client";
 import type { Me, Membership, Role } from "@/lib/types";
-import { HomeIcon, ListIcon, LogoMark, LogoutIcon, PlusIcon, SearchIcon } from "./icons";
+import { CalendarIcon, HomeIcon, ListIcon, LogoMark, LogoutIcon, PlusIcon, SearchIcon } from "./icons";
 import { LangSwitch } from "./LangSwitch";
 import { useI18n } from "./Providers";
 
@@ -40,6 +40,12 @@ export function Shell({
     { href: "/app", label: t("nav.dashboard"), icon: <HomeIcon />, show: true },
     { href: "/app/requests", label: t("nav.requests"), icon: <ListIcon />, show: role !== "technician" },
     { href: "/app/requests/new", label: t("nav.newRequest"), icon: <PlusIcon />, show: role === "customer" },
+    {
+      href: "/app/schedule",
+      label: t("nav.schedule"),
+      icon: <CalendarIcon />,
+      show: role === "dispatcher" || role === "admin",
+    },
   ].filter((item) => item.show);
 
   function isCurrent(href: string): boolean {

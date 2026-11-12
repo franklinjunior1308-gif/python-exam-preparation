@@ -27,6 +27,25 @@ class RequestStatus(StrEnum):
     REOPENED = "REOPENED"
 
 
+class AssignmentStatus(StrEnum):
+    SCHEDULED = "SCHEDULED"
+    ACCEPTED = "ACCEPTED"
+    IN_PROGRESS = "IN_PROGRESS"
+    BLOCKED = "BLOCKED"
+    COMPLETED = "COMPLETED"
+    CANCELED = "CANCELED"  # removed by a dispatcher before work started
+    DECLINED = "DECLINED"  # refused by the technician before work started
+
+
+# Only these block a technician's time (SCHED-03).
+ACTIVE_ASSIGNMENT_STATUSES = (
+    AssignmentStatus.SCHEDULED,
+    AssignmentStatus.ACCEPTED,
+    AssignmentStatus.IN_PROGRESS,
+    AssignmentStatus.BLOCKED,
+)
+
+
 class AssetStatus(StrEnum):
     ACTIVE = "ACTIVE"
     OUT_OF_SERVICE = "OUT_OF_SERVICE"

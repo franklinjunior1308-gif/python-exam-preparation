@@ -10,15 +10,23 @@ Status of work in progress. Nothing is marked done unless it works end to end.
 - Dashboard numbers and charts computed from the database; English and Russian UI.
 - Seed command (`python -m app.seed`): 2 organizations, demo users in every role, 54 requests.
 
+## Also working now
+- Scheduling: skills, weekly availability, absences, assign / reschedule / unassign / decline,
+  PostgreSQL exclusion constraint against overlapping bookings, idempotent replay of the same assignment,
+  schedule view (day and week) and **Smart Assign** (see `PRODUCT_DECISIONS.md`).
+- 140 backend tests on PostgreSQL in Docker, 16 web tests.
+
 ## Not implemented yet (do not treat as done)
 - **Android app (Flutter)**: not started. No offline queue, no APK.
-- **Web**: no dispatcher scheduling view, no estimates UI, no inventory/admin screens, no notifications UI,
-  no live updates (WebSocket/SSE), no photo upload on requests.
-- **Backend modules**: technician skills/availability, assignments and the schedule-conflict guard (SCHED-*),
-  estimates and versions (EST-*), inventory and idempotent material usage (INV-*), SLA clock and escalation
-  (SLA-*), preventive maintenance (PM-*), notes/attachments and files (COMM-*), notifications,
-  rate limiting on login, request/command idempotency keys (API-03/04), structured request-ID logging.
-- **Not covered by tests yet**: API-level and multi-tenant isolation tests, concurrency tests (they need PostgreSQL).
+- **Web**: no estimates UI, no inventory/admin screens, no notifications UI, no live updates
+  (WebSocket/SSE), no photo upload on requests, no admin editing of technician skills/availability
+  (they exist in the database and seed, but only via seed/SQL for now).
+- **Backend modules**: estimates and versions (EST-*), inventory and idempotent material usage (INV-*),
+  SLA clock and escalation (SLA-*), preventive maintenance (PM-*), notes/attachments and files
+  (COMM-*), notifications, rate limiting on login, idempotency keys for notes/materials (API-03/04),
+  request-ID structured logging, completion with note + photo (LIFE-05), WebSocket/SSE updates (API-06).
+- **Not covered by tests yet**: web browser/E2E tests, concurrency for estimates/inventory (modules
+  missing), file protection tests, report correctness tests, multi-worker (SEC-07) tests.
 - Customers see every active property of their organization (there is no customer-to-property link yet).
 - `scripts/smoke.sh` only checks readiness; `scripts/verify-all.sh` fails until the mobile app exists.
 - `compose.yaml` has no `web` service yet; the web app is run with `bun run dev`.

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 import { api } from "@/lib/api-client";
+import { zonedInputToIso } from "@/lib/time";
 import { type Asset, type Category, PRIORITIES, type Property, type ServiceRequest } from "@/lib/types";
 import { useI18n } from "./Providers";
 import { useSession } from "./Shell";
@@ -16,7 +17,7 @@ type Errors = Partial<Record<"title" | "description" | "category" | "property" |
 
 export function NewRequestForm() {
   const { t, tError } = useI18n();
-  const { orgId, role } = useSession();
+  const { orgId, role, membership } = useSession();
   const router = useRouter();
   const queryClient = useQueryClient();
 
@@ -76,8 +77,9 @@ export function NewRequestForm() {
       property_id: Number(propertyId),
       asset_id: assetId ? Number(assetId) : null,
       priority,
-      desired_start: start ? new Date(start).toISOString() : null,
-      desired_end: end ? new Date(end).toISOString() : null,
+      // typed in the organization's timezone, stored as UTC
+      desired_start: start ? zonedInputToIso(start, membership.timezone) : null,
+      desired_end: end ? zonedInputToIso(end, membership.timezone) : null,
     });
   }
 

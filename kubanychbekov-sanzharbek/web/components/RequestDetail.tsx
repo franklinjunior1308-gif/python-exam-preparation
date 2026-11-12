@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import { ApiError, api } from "@/lib/api-client";
 import { formatDateTime, needsReason } from "@/lib/format";
 import type { Category, HistoryEntry, Property, RequestStatus, ServiceRequest } from "@/lib/types";
+import { AssignPanel } from "./AssignPanel";
 import { PriorityBadge, StatusBadge } from "./Badges";
 import { useI18n } from "./Providers";
 import { useSession } from "./Shell";
@@ -37,12 +38,11 @@ export function RequestDetail({ requestId }: { requestId: number }) {
       dialogRef.current?.close();
       setTarget(null);
       setReason("");
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["request", orgId, requestId] }),
-        queryClient.invalidateQueries({ queryKey: ["history", orgId, requestId] }),
-        queryClient.invalidateQueries({ queryKey: ["requests", orgId] }),
-        queryClient.invalidateQueries({ queryKey: ["summary", orgId] }),
-      ]);
+      await Promise.all(
+        ["request", "history", "requests", "summary", "assignments", "suggestions", "schedule"].map(
+          (key) => queryClient.invalidateQueries({ queryKey: [key, orgId] }),
+        ),
+      );
     },
     onError: () => {
       // a conflict means someone else changed the request: refresh what we show
@@ -126,6 +126,7 @@ export function RequestDetail({ requestId }: { requestId: number }) {
         </section>
 
         <div style={{ display: "grid", gap: 14, alignContent: "start" }}>
+          <AssignPanel request={req} />
           <section className="card">
             <h2>{t("detail.actions")}</h2>
             {req.allowed_actions.length === 0 ? (
@@ -143,11 +144,6 @@ export function RequestDetail({ requestId }: { requestId: number }) {
                   </button>
                 ))}
               </div>
-            )}
-            {req.status === "TRIAGED" && role !== "customer" && (
-              <p className="hint" style={{ marginTop: 12 }}>
-                {t("detail.scheduling")}
-              </p>
             )}
           </section>
 

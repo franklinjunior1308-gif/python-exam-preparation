@@ -8,6 +8,7 @@ from sqlalchemy import (
     Index,
     String,
     Text,
+    UniqueConstraint,
     func,
 )
 from sqlalchemy.orm import Mapped, mapped_column
@@ -20,6 +21,8 @@ from app.models.base import TimestampMixin, enum_column
 class ServiceRequest(TimestampMixin, Base):
     __tablename__ = "service_requests"
     __table_args__ = (
+        # target of composite FKs from assignments
+        UniqueConstraint("organization_id", "id", name="uq_service_requests_organization_id_id"),
         # composite FKs make cross-organization links impossible at the database level (DATA-05)
         ForeignKeyConstraint(
             ["organization_id", "category_id"],

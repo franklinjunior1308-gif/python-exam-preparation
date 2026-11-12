@@ -18,7 +18,7 @@ services:
     build: ./backend
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-fixflow}:${POSTGRES_PASSWORD:-fixflow}@db:5432/${POSTGRES_DB:-fixflow}
-      SECRET_KEY: ${SECRET_KEY:-dev-only-change-me}
+      SECRET_KEY: ${SECRET_KEY:-dev-only-change-me-dev-only-change-me-0000}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       UPLOAD_DIR: /data/uploads
     ports:
@@ -33,6 +33,18 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+
+  # Backend tests against a throw-away database:  docker compose --profile test run --rm backend-tests
+  backend-tests:
+    profiles: ["test"]
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-fixflow}:${POSTGRES_PASSWORD:-fixflow}@db:5432/fixflow_test
+      TEST_DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-fixflow}:${POSTGRES_PASSWORD:-fixflow}@db:5432/fixflow_test
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "-c", "uv sync --frozen && python -m ruff check . && python -m pytest -q"]
 
 volumes:
   db_data:

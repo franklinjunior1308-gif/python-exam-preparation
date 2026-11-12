@@ -9,7 +9,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     database_url: str = "postgresql+psycopg://fixflow:fixflow@localhost:5432/fixflow"
-    secret_key: str = "dev-only-change-me"  # demo-only default, never use in production
+    # demo-only default (32+ bytes so JWT does not warn); never use it in production
+    secret_key: str = "dev-only-change-me-dev-only-change-me-0000"
     access_token_minutes: int = 60
     cors_origins: str = "http://localhost:3000"
     upload_dir: str = "./uploads"

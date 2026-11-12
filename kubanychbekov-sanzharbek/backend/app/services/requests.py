@@ -3,14 +3,23 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import OrgContext
 from app.core.errors import AppError
-from app.domain.enums import AssetStatus, Priority, RequestStatus, Role
+from app.domain.enums import (
+    ACTIVE_ASSIGNMENT_STATUSES,
+    AssetStatus,
+    AssignmentStatus,
+    Priority,
+    RequestStatus,
+    Role,
+)
 from app.domain.lifecycle import TransitionError, allowed_targets, check_transition
 from app.models import (
     Asset,
+    Assignment,
     Property,
     RequestStatusHistory,
     ServiceCategory,
     ServiceRequest,
+    TechnicianProfile,
 )
 from app.schemas.request import RequestCreate, RequestOut
 from app.services.audit import record_audit
@@ -29,14 +38,39 @@ _SORT_COLUMNS = {
 }
 
 
-def to_out(req: ServiceRequest, ctx: OrgContext) -> RequestOut:
+_ASSIGNMENT_FOLLOWS = {
+    RequestStatus.ACCEPTED: AssignmentStatus.ACCEPTED,
+    RequestStatus.IN_PROGRESS: AssignmentStatus.IN_PROGRESS,
+    RequestStatus.BLOCKED: AssignmentStatus.BLOCKED,
+    RequestStatus.COMPLETED: AssignmentStatus.COMPLETED,
+}
+
+
+def assigned_set(db: Session, ctx: OrgContext, request_ids: list[int]) -> set[int]:
+    """Requests (among the given ids) where the current user is the active technician."""
+    if ctx.role != Role.TECHNICIAN or not request_ids:
+        return set()
+    rows = db.scalars(
+        select(Assignment.request_id)
+        .join(TechnicianProfile, TechnicianProfile.id == Assignment.technician_id)
+        .where(
+            Assignment.organization_id == ctx.org_id,
+            Assignment.request_id.in_(request_ids),
+            Assignment.status.in_(ACTIVE_ASSIGNMENT_STATUSES),
+            TechnicianProfile.user_id == ctx.user.id,
+        )
+    )
+    return set(rows)
+
+
+def to_out(req: ServiceRequest, ctx: OrgContext, assigned: set[int] | None = None) -> RequestOut:
     """Serialize and attach the actions the current user may take (REQ-05)."""
     out = RequestOut.model_validate(req)
     out.allowed_actions = allowed_targets(
         req.status,
         ctx.role,
         is_owner=req.created_by_user_id == ctx.user.id,
-        is_assignee=False,  # assignments are added in the scheduling module
+        is_assignee=req.id in (assigned or set()),
     )
     return out
 
@@ -47,7 +81,17 @@ def visible_conditions(ctx: OrgContext):
     if ctx.role == Role.CUSTOMER:
         conditions.append(ServiceRequest.created_by_user_id == ctx.user.id)
     elif ctx.role == Role.TECHNICIAN:
-        conditions.append(ServiceRequest.id == -1)  # no assignments yet -> nothing visible
+        # technicians see only requests they are (or were) booked on, never released ones
+        mine = (
+            select(Assignment.request_id)
+            .join(TechnicianProfile, TechnicianProfile.id == Assignment.technician_id)
+            .where(
+                Assignment.organization_id == ctx.org_id,
+                TechnicianProfile.user_id == ctx.user.id,
+                Assignment.status.notin_([AssignmentStatus.CANCELED, AssignmentStatus.DECLINED]),
+            )
+        )
+        conditions.append(ServiceRequest.id.in_(mine))
     return conditions
 
 
@@ -196,7 +240,7 @@ def transition_request(
             target,
             ctx.role,
             is_owner=req.created_by_user_id == ctx.user.id,
-            is_assignee=False,
+            is_assignee=req.id in assigned_set(db, ctx, [req.id]),
             reason=reason,
         )
     except TransitionError as err:
@@ -222,6 +266,19 @@ def transition_request(
     if result.first() is None:
         db.rollback()
         raise AppError(409, "state_conflict", "The request was changed by someone else; reload")
+
+    # keep the booking in step with the work (assignment statuses follow the request)
+    mirrored = _ASSIGNMENT_FOLLOWS.get(target)
+    if mirrored is not None:
+        db.execute(
+            update(Assignment)
+            .where(
+                Assignment.request_id == req.id,
+                Assignment.organization_id == ctx.org_id,
+                Assignment.status.in_(ACTIVE_ASSIGNMENT_STATUSES),
+            )
+            .values(status=mirrored)
+        )
 
     db.add(
         RequestStatusHistory(

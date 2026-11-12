@@ -78,6 +78,68 @@ export type Asset = {
   status: string;
 };
 
+export const ASSIGNMENT_STATUSES = [
+  "SCHEDULED",
+  "ACCEPTED",
+  "IN_PROGRESS",
+  "BLOCKED",
+  "COMPLETED",
+  "CANCELED",
+  "DECLINED",
+] as const;
+export type AssignmentStatus = (typeof ASSIGNMENT_STATUSES)[number];
+
+export type Technician = {
+  id: number;
+  user_id: number;
+  full_name: string;
+  email: string;
+  is_active: boolean;
+  skills: string[];
+  availability: { weekday: number; start_time: string; end_time: string }[];
+  load_percent: number;
+};
+
+export type Assignment = {
+  id: number;
+  request_id: number;
+  request_title: string;
+  technician_id: number;
+  technician_name: string;
+  start_at: string;
+  end_at: string;
+  timezone: string;
+  status: AssignmentStatus;
+};
+
+export type Suggestion = {
+  technician_id: number;
+  full_name: string;
+  skills: string[];
+  start_at: string;
+  end_at: string;
+  load_percent: number;
+  within_desired_window: boolean | null;
+  is_best: boolean;
+};
+
+export type Candidate = {
+  technician_id: number;
+  full_name: string;
+  skills: string[];
+  available: boolean;
+  load_percent: number;
+  reasons: { code: string; detail: string | null }[];
+  conflicting_assignment_ids: number[];
+};
+
+export type Schedule = {
+  timezone: string;
+  technicians: Technician[];
+  assignments: Assignment[];
+  absences: { technician_id: number; start_at: string; end_at: string; reason: string | null }[];
+};
+
 export type Summary = {
   total: number;
   open: number;

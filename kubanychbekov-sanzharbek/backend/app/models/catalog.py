@@ -1,6 +1,7 @@
 from datetime import date
 
-from sqlalchemy import ForeignKey, ForeignKeyConstraint, String, Text, UniqueConstraint
+from sqlalchemy import ForeignKey, ForeignKeyConstraint, String, Text, UniqueConstraint, text
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -21,6 +22,10 @@ class ServiceCategory(TimestampMixin, Base):
     name: Mapped[str] = mapped_column(String(120))
     description: Mapped[str] = mapped_column(Text, default="")
     default_duration_min: Mapped[int] = mapped_column(default=60)
+    # a technician needs ALL of these skills to be assigned (SCHED-01)
+    required_skills: Mapped[list[str]] = mapped_column(
+        JSONB, default=list, server_default=text("'[]'::jsonb")
+    )
     is_active: Mapped[bool] = mapped_column(default=True)
 
 

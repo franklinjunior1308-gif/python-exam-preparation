@@ -50,14 +50,19 @@ def list_(
         sort_by=sort_by,
         descending=descending,
     )
+    assigned = service.assigned_set(db, ctx, [r.id for r in rows])
     return RequestPage(
-        items=[service.to_out(r, ctx) for r in rows], total=total, page=page, page_size=page_size
+        items=[service.to_out(r, ctx, assigned) for r in rows],
+        total=total,
+        page=page,
+        page_size=page_size,
     )
 
 
 @router.get("/{request_id}", response_model=RequestOut)
 def detail(request_id: int, ctx: OrgDep, db: DbDep) -> RequestOut:
-    return service.to_out(service.get_request(db, ctx, request_id), ctx)
+    req = service.get_request(db, ctx, request_id)
+    return service.to_out(req, ctx, service.assigned_set(db, ctx, [req.id]))
 
 
 @router.get("/{request_id}/history", response_model=list[HistoryOut])
@@ -77,4 +82,4 @@ def history(request_id: int, ctx: OrgDep, db: DbDep) -> list[RequestStatusHistor
 @router.post("/{request_id}/transitions", response_model=RequestOut)
 def transition(request_id: int, data: TransitionIn, ctx: OrgDep, db: DbDep) -> RequestOut:
     req = service.transition_request(db, ctx, request_id, data.to_status, data.reason)
-    return service.to_out(req, ctx)
+    return service.to_out(req, ctx, service.assigned_set(db, ctx, [req.id]))

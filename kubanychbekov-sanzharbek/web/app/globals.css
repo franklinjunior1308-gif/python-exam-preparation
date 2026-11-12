@@ -656,6 +656,237 @@ dialog::backdrop {
   text-align: left;
 }
 
+/* ---------- smart assign ---------- */
+.smart {
+  padding: 14px;
+  border: 1px solid rgba(6, 214, 255, 0.45);
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(6, 214, 255, 0.12), rgba(58, 134, 255, 0.1));
+}
+.smart h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 4px;
+  font-size: 1rem;
+  color: var(--primary);
+}
+.suggest-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.suggest {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(7, 22, 43, 0.55);
+}
+.suggest.best {
+  border-color: var(--primary);
+}
+.tag {
+  display: inline-block;
+  padding: 1px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+.tag-best {
+  background: var(--primary);
+  color: #031c26;
+}
+.tag-ok {
+  background: rgba(52, 211, 153, 0.18);
+  color: #8ff0c8;
+  border: 1px solid rgba(52, 211, 153, 0.5);
+}
+.tag-bad {
+  background: rgba(255, 107, 122, 0.15);
+  color: #ffb3bb;
+  border: 1px solid rgba(255, 107, 122, 0.5);
+}
+.reason {
+  color: #ffb3bb;
+}
+.history-list {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+.small {
+  font-size: 0.75rem;
+}
+
+/* ---------- schedule ---------- */
+.sched-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+.sched-range {
+  min-width: 150px;
+  text-align: center;
+}
+.sched {
+  padding: 12px;
+  overflow-x: auto;
+}
+.sched-day {
+  min-width: 860px;
+}
+.sched-head,
+.sched-row {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  gap: 14px;
+}
+.sched-label {
+  font-weight: 600;
+  padding: 6px 4px;
+}
+.sched-hours {
+  position: relative;
+  height: 28px;
+}
+.sched-hours span {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.sched-row {
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+.sched-track {
+  position: relative;
+  height: 56px;
+  border-radius: 8px;
+  background: repeating-linear-gradient(135deg, rgba(148, 163, 184, 0.1) 0 6px, transparent 6px 12px);
+  overflow: hidden;
+}
+.sched-track .shift {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(58, 134, 255, 0.12);
+  border-left: 1px solid rgba(58, 134, 255, 0.4);
+  border-right: 1px solid rgba(58, 134, 255, 0.4);
+}
+.off,
+.away-tag {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.away-tag {
+  background: rgba(251, 146, 60, 0.18);
+  color: #fdba74;
+  border: 1px solid rgba(251, 146, 60, 0.5);
+}
+.sched-track .off,
+.sched-track .away-tag {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  z-index: 2;
+}
+.tech-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.load {
+  position: relative;
+  margin-top: 4px;
+  height: 14px;
+  border-radius: 7px;
+  background: rgba(148, 163, 184, 0.18);
+  overflow: hidden;
+}
+.load i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: linear-gradient(90deg, var(--accent), var(--primary));
+}
+.load span {
+  position: relative;
+  padding-left: 6px;
+  font-size: 0.68rem;
+  line-height: 14px;
+  color: #fff;
+}
+.chip {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  z-index: 1;
+  display: block;
+  padding: 3px 8px;
+  border: 1.5px solid var(--c);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--c) 26%, #07162b);
+  font-size: 0.74rem;
+  line-height: 1.25;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.chip small {
+  display: block;
+  color: color-mix(in srgb, var(--c) 40%, #ffffff);
+}
+.chip.static {
+  position: static;
+  margin: 0 0 4px;
+  white-space: normal;
+}
+.chip:hover {
+  background: color-mix(in srgb, var(--c) 45%, #07162b);
+}
+.week-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.week-table th,
+.week-table td {
+  padding: 8px;
+  vertical-align: top;
+  border-top: 1px solid var(--line);
+  text-align: left;
+}
+.week-table th {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.week-table th:first-child,
+.week-table td:first-child {
+  width: 230px;
+}
+.week-table .today {
+  background: rgba(6, 214, 255, 0.06);
+}
+.sched-legend {
+  margin-top: 14px;
+}
+
 /* ---------- responsive ---------- */
 @media (max-width: 1100px) {
   .stats {
