@@ -86,7 +86,13 @@ def upgrade() -> None:
     op.create_unique_constraint(
         "uq_request_plan_date", "service_requests", ["plan_id", "plan_date"]
     )
-    op.create_foreign_key(None, "service_requests", "maintenance_plans", ["plan_id"], ["id"])
+    op.create_foreign_key(
+        "service_requests_plan_id_fkey",
+        "service_requests",
+        "maintenance_plans",
+        ["plan_id"],
+        ["id"],
+    )
     # ### end Alembic commands ###
 
 
@@ -95,7 +101,7 @@ def downgrade() -> None:
     # WARNING: constraint name is None; this directive will fail as
     # rendered.  Add a name, or use a naming convention; see
     # https://alembic.sqlalchemy.org/en/latest/naming.html
-    op.drop_constraint(None, "service_requests", type_="foreignkey")
+    op.drop_constraint("service_requests_plan_id_fkey", "service_requests", type_="foreignkey")
     op.drop_constraint("uq_request_plan_date", "service_requests", type_="unique")
     op.drop_column("service_requests", "plan_date")
     op.drop_column("service_requests", "plan_id")
