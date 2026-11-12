@@ -1,6 +1,6 @@
 # PROGRESS (read this first after a context reset)
 
-Last updated: 2026-11-12 ~22:50 (Asia/Bishkek). Deadline: **Sunday 2026-11-15 18:00**; shared GitHub
+Last updated: 2026-11-12 ~23:55 (Asia/Bishkek). Deadline: **Sunday 2026-11-15 18:00**; shared GitHub
 repository access opens **Sunday 16:00**. **Nothing has been pushed to GitHub, and nothing may be
 pushed before then** (see "Submission" below).
 
@@ -31,14 +31,17 @@ pushed before then** (see "Submission" below).
 | Notifications | stored per recipient+org: assignment created/changed/removed/declined, completion, estimate submitted/decision, low stock | COMM-03,04 (partly) |
 | Idempotency | `client_command_id` unique per org for notes, photos, completion, materials; same id+other payload = 409 | API-03,04, MOB-06 |
 | Reports | dashboard summary computed from DB in org timezone | REPORT-01,02(partly),05 |
+| SLA | working-hours/holiday settings (admin), SLA per request in working time (budget by priority, estimate waits pause the clock, result fixed at completion), AT_RISK/OVERDUE, overdue queue, SLA filter on the list, one-time escalation (DB unique) via `python -m app.sla_scan`, priority/category change with reason (audited) | SLA-01..07, ORG-02, REQ-03/04 |
+| Preventive maintenance | plans WEEKLY/MONTHLY per active asset, generation up to a date with DB unique (plan,date), parallel-safe, disable + retired-asset stop, history per plan, asset summary, local command `python -m app.pm_generate` | PM-01..05, ASSET-04/05 |
 | Web | landing (dark tech), sign-in, org picker, dashboard + charts, requests list/new/detail, assignment panel, schedule, EN/RU, BFF proxy with httpOnly cookie + CSRF header, responsive, keyboard focus | WEB-01..08 (partly), DOC-07 |
 | Android | sign-in, org choice, task list (local DB, offline), task details, accept/decline/start/block/resume/complete, notes + photos with offline queue, retry/delete, conflicts kept until user decides, 401 keeps queue, notifications, profile, EN/RU | MOB-01..08 (partly) |
 | Docs | README, ARCHITECTURE, API, PRODUCT_DECISIONS, KNOWN_LIMITATIONS, VERIFICATION, this file | DOC-01..05 |
 
 ## Test results (last full runs)
-- **Backend**: `docker compose --profile test run --rm backend-tests` -> **187 passed, 0 failed**
-  (ruff clean, ty clean). 97 lifecycle, 19 scheduling rules, 3 money, 2 health, 66 integration tests on
-  real PostgreSQL (overlap guard, concurrency, isolation, notes/photos/completion, estimates, inventory).
+- **Backend**: `docker compose --profile test run --rm backend-tests` -> **225 passed, 0 failed**
+  (ruff clean, ty clean). Pure: lifecycle 97, scheduling 19, money 3, SLA 9, maintenance dates 7; the rest are
+  integration tests on real PostgreSQL (overlap guard, concurrency, isolation, notes/photos/completion,
+  estimates, inventory, SLA, maintenance).
 - **Web**: `bun run lint && bun run typecheck && bun run test:ci && bun run build` -> all exit 0, 16 tests.
 - **Mobile**: `flutter analyze` -> No issues; `flutter test` -> **22 passed** (10 offline-queue/sync,
   12 app/widget/i18n).
@@ -164,15 +167,17 @@ If the loopback test still fails: build the APK inside a Linux container instead
 Flutter + JDK 17 + Android SDK; mount `mobile/`), or ask the user about other network/security software.
 
 ## CURRENT NEXT STEP
-1. Finish the Gradle zip download (still running at last check), install it into Gradle's cache as above,
-   run `flutter build apk --debug`, show the user the test results + APK path/size.
-2. **SLA is partly done**: the pure working-time arithmetic exists in `backend/app/domain/sla.py` with 9
-   unit tests (`tests/test_sla.py`, weekends/holidays/pauses/thresholds). Still to do for SLA-01..07:
-   DB tables (org working-hours settings + holidays, per-request SLA events/pauses, escalation record),
-   hook pauses to estimate AWAITING_APPROVAL start/end, expose state on requests + `/sla/overdue`,
-   one-time escalation notification with a unique DB constraint, local command
-   `python -m app.sla_scan`, tests (E2E-07: Friday evening HIGH request, holiday, estimate pause, one escalation).
-3. Then preventive maintenance (PM-*).
+1. **APK**: the build (`flutter build apk --debug`, env as in the loopback section) is running; the log is
+   `%TEMP%pk-build6.txt`. Gradle auto-downloads NDK 28.2 (~600 MB) and Maven artifacts, so it is slow; if
+   Gradle stalls (cache folder `~/.gradle/caches` stops growing for >5 min) kill `java` and restart the
+   build (caches are kept). When it succeeds: record the APK path/size in `VERIFICATION.md`.
+2. **Seed**: add maintenance plans (>= 3, one already due), estimates in several states and SLA cases to
+   `app/seed.py` (needs an empty database or a new org; do NOT reset the dev DB - add a separate
+   `seed-extra` step that only inserts if missing).
+3. **Web screens**: SLA badge on request list/detail + overdue queue, estimates (create/submit/decide),
+   inventory, maintenance plans, admin working hours/holidays, notifications.
+4. **Android**: materials screen, estimate on the task.
+5. Live updates (SSE), request-ID logging, login rate limit, scripts, `web` in compose, `AI_USAGE.md`, video.
 
 ## Submission (do not do early)
 Only on Sunday 2026-11-15 after 16:00: accept the invitation, create branch
