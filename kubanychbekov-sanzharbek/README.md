@@ -54,7 +54,7 @@ docker compose run --rm backend python -m app.seed_extra   # plans, estimates, S
   automates it, including a lost response after the server already processed the request.
 - **Concurrent requests:** `cd backend && pytest tests/test_scheduling_api.py tests/test_inventory_api.py tests/test_sla_api.py`
   fire parallel requests at PostgreSQL (double booking, last stock units, one SLA escalation); `./scripts/smoke.sh` shows one 409.
-- **Whole scenario:** `python scripts/e2e_scenario.py http://localhost:8000`.
+- **Whole scenario:** `API_URL=http://localhost:8000 python scripts/e2e_scenario.py`.
 
 ## Run the web app
 
