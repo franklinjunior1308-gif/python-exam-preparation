@@ -9,16 +9,19 @@ Statuses: `400/401/403/404/409/422` (+`413` for oversized uploads). All protecte
 |---|---|
 | Health | `GET /health/live`, `GET /health/ready` (503 when the database is down) |
 | Auth & memberships | `POST /auth/login`, `POST /auth/logout`, `GET /me` |
-| Catalog | `GET /categories`, `GET /properties`, `GET /assets?property_id=` |
-| Requests & lifecycle | `POST/GET /requests`, `GET /requests/{id}`, `GET /requests/{id}/history`, `POST /requests/{id}/transitions`, `POST /requests/{id}/complete` |
-| Scheduling | `GET /technicians`, `GET /schedule?from&to`, `GET /requests/{id}/candidates`, `GET /requests/{id}/suggestions`, `GET/POST /requests/{id}/assignments`, `PATCH /assignments/{id}`, `POST /assignments/{id}/unassign`, `POST /assignments/{id}/decline` |
-| Notes & files | `GET/POST /requests/{id}/notes`, `GET/POST /requests/{id}/attachments`, `GET /attachments/{id}/file` |
-| Technician | `GET /my/tasks` |
-| Notifications | `GET /notifications`, `POST /notifications/{id}/read`, `POST /notifications/read-all` |
-| Reports | `GET /reports/summary?days=` |
-
-Not implemented yet: estimates, inventory, preventive maintenance, SLA endpoints, audit feed,
-organization administration (see `KNOWN_LIMITATIONS.md`).
+| Organization & staff | `GET/PUT /settings/organization`, `GET/POST /users`, `PUT /users/{id}`, `GET/PUT /settings/working-hours`, `POST/DELETE /settings/holidays` |
+| Categories & skills | `GET/POST /categories`, `PUT /categories/{id}`, `GET /technicians`, `PUT /technicians/{id}/profile` |
+| Properties & equipment | `GET/POST /properties`, `PUT /properties/{id}`, `GET/POST /assets`, `PUT /assets/{id}`, `GET /assets/{id}/history`, `GET /assets/{id}/summary` |
+| Requests & lifecycle | `POST/GET /requests` (filters, sorting, paging), `GET /requests/{id}`, `GET /requests/{id}/history`, `POST /requests/{id}/transitions`, `POST /requests/{id}/complete` |
+| Scheduling | `GET /schedule?from&to`, `GET /requests/{id}/candidates`, `GET /requests/{id}/suggestions`, `GET/POST /requests/{id}/assignments`, `PATCH /assignments/{id}`, `POST /assignments/{id}/unassign`, `POST /assignments/{id}/decline` |
+| Estimates | `GET/POST /requests/{id}/estimates`, `PUT /estimates/{id}`, `POST /estimates/{id}/submit`, `POST /estimates/{id}/decision`, `POST /estimates/{id}/withdraw` |
+| Inventory & materials | `GET/POST /inventory`, `POST /inventory/{id}/replenish`, `GET/POST /requests/{id}/materials` |
+| SLA | `GET /sla/overdue`, SLA block on every request, `python -m app.sla_scan` |
+| Preventive maintenance | `GET/POST /maintenance-plans`, `POST /maintenance-plans/{id}/disable`, `GET /maintenance-plans/{id}/requests`, `POST /maintenance/generate`, `python -m app.pm_generate` |
+| Notes, photos, feedback | `GET/POST /requests/{id}/notes`, `GET/POST /requests/{id}/attachments`, `GET /attachments/{id}/file`, `GET/POST /requests/{id}/feedback` |
+| Technician app | `GET /my/tasks` (with SLA and earlier jobs on the equipment), `GET /my/availability` |
+| Notifications & live updates | `GET /notifications`, `POST /notifications/{id}/read`, `POST /notifications/read-all`, `GET /events` (SSE) |
+| Reports & audit | `GET /reports/summary`, `GET /reports/sla`, `GET /audit` |
 
 ## Examples
 
