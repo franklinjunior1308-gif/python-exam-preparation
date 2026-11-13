@@ -158,3 +158,20 @@ Duration is 5-480 minutes (`422`); the name is unique per organization (`409 cat
 lower-cased and de-duplicated. A disabled category stays on existing requests but is refused for new ones
 (`422 category_inactive`). `GET /categories?include_inactive=true` (admin/dispatcher) lists disabled ones too.
 Audited as `category.created` / `category.updated`.
+
+### Live updates (API-06)
+```http
+GET /api/v1/events        Authorization: Bearer <token>   X-Organization-Id: <id>      -> text/event-stream
+retry: 3000
+: connected
+
+event: changed
+data: {"scope": "requests" | "assignments" | "notifications", "request_id": 5 | null, "at": "2026-11-13T05:00:00+00:00"}
+
+: keepalive
+```
+Hints only: ids, never data, so the client refetches through the normal permission-checked endpoints.
+Customers and technicians only get hints for requests they can see; notifications only for their recipient.
+The server checks for new audit/notification rows every 2 s (`EVENTS_POLL_SECONDS`), sends `: keepalive` every
+15 s (`EVENTS_KEEPALIVE_SECONDS`) and closes the stream when the session is revoked or expires. `401` without a
+token, `400` without `X-Organization-Id`.

@@ -34,10 +34,9 @@ Status of work in progress. Nothing is marked done unless it works end to end.
   booking and tenant isolation.
 
 ## Not implemented yet (do not treat as done)
-- **Web administration screens** for staff/roles and categories (the working-hours, holiday and technician
-  skills/availability screens exist); an SLA report page beyond the dashboard totals.
-- **Live updates** (API-06): the web refetches on a timer (notifications every 30 s) and on actions; there is no
-  push channel, so a change made elsewhere can take up to that long to appear.
+- **Live updates** (API-06): the backend streams change hints over SSE (`GET /events`, polled every 2 s on the
+  server); the web uses them with a timer fallback. Android does not listen to the stream and refreshes on
+  start, pull-to-refresh and sync.
 - **The APK has not been installed on a device or emulator** in the final check; the app code was exercised against
   the real API by `mobile/test/live` and the widget tests. Install it before recording the video.
 - **Risk register (SEC-09):** (1) per-e-mail login lockout can be used to pause an account (see below), mitigation:
@@ -45,10 +44,9 @@ Status of work in progress. Nothing is marked done unless it works end to end.
   not the keystore, mitigation: sandboxed storage, token revocable server-side; (3) plain HTTP is allowed for local
   development, mitigation: used only on a local network, production would require HTTPS; (4) uploaded photos live on
   a local volume without antivirus scanning, mitigation: content-type and image validation, authorized download only.
-- **Backend**: live updates over WebSocket/SSE (API-06).
-  Login lockout (5 failures per e-mail in 15 minutes) is per e-mail, not per address, so someone who knows an
+- **Backend**: Login lockout (5 failures per e-mail in 15 minutes) is per e-mail, not per address, so someone who knows an
   e-mail can pause that account for up to 15 minutes; there is no CAPTCHA or per-IP limit.
-- **Android**: live updates; completion does not yet verify materials (LIFE-05 "materials correctly
+- **Android**: completion does not yet verify materials (LIFE-05 "materials correctly
   accounted").
 - **Verification**: no browser/E2E tests for the web; no instrumented tests for Android.
 - Customers see every active property of their organization (there is no customer-to-property link).

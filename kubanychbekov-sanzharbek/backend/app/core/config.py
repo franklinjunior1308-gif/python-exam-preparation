@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     upload_dir: str = "./uploads"
     # SEC-03: this many failed sign-ins for one e-mail lock it for the window
     login_max_failures: int = 5
+    events_poll_seconds: float = 2.0
+    events_keepalive_seconds: float = 15.0
     login_window_minutes: int = 15
 
 
