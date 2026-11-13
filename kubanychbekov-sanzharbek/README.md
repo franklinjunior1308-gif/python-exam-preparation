@@ -40,6 +40,7 @@ docker compose run --rm backend python -m app.seed_extra   # plans, estimates, S
 ./scripts/smoke.sh              # real HTTP lifecycle, a 409 double booking, tenant isolation
 ```
 
+- **Shortcuts with `make`** (optional; needs `make`, on Windows run it from Git Bash after e.g. `winget install ezwinports.make`): `make up` builds and starts PostgreSQL + API + web, waits until the API is ready and loads the demo data; `make help` lists every target (`down`, `status`, `logs`, `seed`, `sla-scan`, `smoke`, `test-backend`, `verify`, `apk`, ...). `make down` keeps the data; only `make reset CONFIRM=yes` deletes it.
 - Web: http://localhost:3000 (the `web` service; the section below is for development without Docker)
 - API: http://localhost:8000 (OpenAPI at `/docs`), health: `/api/v1/health/live` and `/ready`
 - Ports can be changed with `API_PORT` in `.env`.
