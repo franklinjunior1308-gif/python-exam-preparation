@@ -45,6 +45,16 @@ docker compose run --rm backend python -m app.seed_extra   # plans, estimates, S
 - Reset the local demo environment (**destroys the local database and uploads**):
   `docker compose down -v`
 - Migrations only: `docker compose run --rm backend alembic upgrade head`
+- Reset only affects the local Docker volumes; it never touches an external database (`DATABASE_URL` is not read by it).
+- Demo accounts, IDs and the shared password `Demo-2345!` are fixed and for the demo only; repeating the seed adds nothing.
+
+### Dev checks without external services (SEED-06)
+- **Offline Android:** switch the phone to airplane mode, or `docker compose stop backend`, add notes/photos in the app,
+  then turn the connection back on: the queue sends each item once. `mobile/test/live` (run with `FIXFLOW_API=http://localhost:8000`)
+  automates it, including a lost response after the server already processed the request.
+- **Concurrent requests:** `cd backend && pytest tests/test_scheduling_api.py tests/test_inventory_api.py tests/test_sla_api.py`
+  fire parallel requests at PostgreSQL (double booking, last stock units, one SLA escalation); `./scripts/smoke.sh` shows one 409.
+- **Whole scenario:** `python scripts/e2e_scenario.py http://localhost:8000`.
 
 ## Run the web app
 

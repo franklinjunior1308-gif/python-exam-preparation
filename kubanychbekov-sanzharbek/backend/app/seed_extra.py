@@ -14,6 +14,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_sessionmaker
 from app.domain.enums import (
     ACTIVE_ASSIGNMENT_STATUSES,
+    AssetStatus,
     EstimateStatus,
     Priority,
     RequestStatus,
@@ -46,6 +47,59 @@ PARTS = [
     ("CAP-04", "Capacitor 40uF", "pcs", "3", "3", 32_000),  # exactly at its level: low stock
     ("GAS-05", "Refrigerant R410A", "kg", "18.5", "6", 210_000),
 ]
+
+
+# SEED-01: with the base seed this brings the demo to 20 stock items and 16 pieces of equipment
+EXTRA_PARTS = [
+    ("FAN-06", "Fan motor 120W", "pcs", "6", "2", 450_000),
+    ("BLT-07", "Drive belt B-52", "pcs", "15", "4", 18_000),
+    ("OIL-08", "Machine oil 1L", "l", "30", "8", 12_000),
+    ("LMP-09", "LED panel 40W", "pcs", "25", "6", 28_000),
+    ("FUS-10", "Fuse 16A", "pcs", "100", "20", 800),
+]
+
+
+def seed_top_up(db: Session) -> None:
+    """Idempotent: adds missing extra stock items and one more asset per organization."""
+    for org in db.scalars(select(Organization)):
+        for code, name, unit, stock, threshold, price in EXTRA_PARTS:
+            exists = db.scalar(
+                select(InventoryItem.id).where(
+                    InventoryItem.organization_id == org.id, InventoryItem.code == code
+                )
+            )
+            if exists is None:
+                db.add(
+                    InventoryItem(
+                        organization_id=org.id,
+                        code=code,
+                        name=name,
+                        unit=unit,
+                        stock=Decimal(stock),
+                        reorder_threshold=Decimal(threshold),
+                        unit_price_cents=price,
+                    )
+                )
+        template = db.scalars(
+            select(Asset).where(Asset.organization_id == org.id).order_by(Asset.id)
+        ).first()
+        if template is not None:
+            code = f"{template.code.split('-')[0]}-008"
+            has = db.scalar(
+                select(Asset.id).where(Asset.organization_id == org.id, Asset.code == code)
+            )
+            if has is None:
+                db.add(
+                    Asset(
+                        organization_id=org.id,
+                        property_id=template.property_id,
+                        code=code,
+                        name="Air handling unit 8",
+                        asset_type="HVAC unit",
+                        status=AssetStatus.ACTIVE,
+                    )
+                )
+        db.commit()
 
 
 def _staff_id(db: Session, org_id: int) -> int:
@@ -369,6 +423,7 @@ def seed_inventory(db: Session) -> None:
 def main() -> None:
     with get_sessionmaker()() as db:
         seed_inventory(db)
+        seed_top_up(db)
         for org in db.scalars(select(Organization)):
             marker = db.scalar(
                 select(AuditEvent.id).where(
