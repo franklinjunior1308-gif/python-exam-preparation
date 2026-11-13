@@ -6,7 +6,8 @@ WORKDIR /app
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy PATH="/app/.venv/bin:$PATH"
 
 COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev --no-install-project
+# retry: a dropped connection while downloading packages must not break `make up`
+RUN for attempt in 1 2 3; do uv sync --frozen --no-dev --no-install-project && exit 0; echo "uv sync failed (attempt $attempt), retrying"; sleep 5; done; exit 1
 
 COPY . .
 
