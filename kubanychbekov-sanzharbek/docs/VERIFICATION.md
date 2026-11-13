@@ -106,3 +106,22 @@ Result: all four exit 0; 16 tests pass (translation parity EN/RU, time-zone conv
   local copy is removed, downloads the photo with the session (200) and without it (401), and checks that a
   forbidden state change is refused. A wrong password gives `invalid_credentials` and stores nothing. Without
   `FIXFLOW_API` the live tests are skipped, so the normal `flutter test` stays offline.
+
+## Final full check - 2026-11-13
+Run on the author's Windows machine, backend tests in Docker (`BACKEND_TESTS_IN_DOCKER=1`), HEAD `9b82d8e` plus docs.
+
+| Part | Command | Result |
+|---|---|---|
+| Backend | `ruff check`, `ruff format --check`, `ty check`, `pytest` (PostgreSQL 17) | all clean, **269 passed** |
+| Web | `bun run lint`, `typecheck`, `test:ci`, `build` | clean, 23 tests passed, production build succeeded |
+| Android | `dart format`, `flutter analyze`, `flutter test`, `flutter build apk --debug` | clean, 28 passed (2 live tests skipped without `FIXFLOW_API`), APK built |
+
+APK: `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 268 742 bytes,
+SHA-256 `e0bd783215647002b4a6e7e5fddf3c81a1eaad5bb12f118b40bd95da04f42085`.
+**Still not checked on a physical phone** (see `ANDROID_PHONE_TEST.md`).
+
+**Do not run two backend-test runs against the same database at once.** The suite truncates shared tables, so two
+parallel runs on `fixflow_test` deadlocked (`DeadlockDetected`, 16 failed and 50 errors in one attempt; a run alone
+gives 269 passed). To run in parallel, give each run its own database:
+`docker compose --profile test run --rm -e DATABASE_URL=postgresql+psycopg://fixflow:fixflow@db:5432/<name> -e TEST_DATABASE_URL=<same> backend-tests`
+(the database is created on demand).
