@@ -37,6 +37,8 @@ app code reaches the API through the computer's Wi-Fi address); `GET http://192.
 200. Installing on a real phone and the 11-step scenario are described in `docs/ANDROID_PHONE_TEST.md`; their result
 is recorded there only after they are run by hand.
 
+**Whole scenario through the API** (`scripts/e2e_scenario.py`, 2026-11-13, against `http://10.116.90.235:8000`, the computer's address on the phone's hotspot): customer creates an HVAC request with a photo; dispatcher triages, Smart Assign lists suggestions, assigns `tech2.a`; a second booking of the same slot is refused with 409; the technician sees the task, accepts, starts; the note and the photo retried with the same command id are stored once; completion; the dispatcher sees COMPLETED with the final SLA and history SUBMITTED, TRIAGED, SCHEDULED, ACCEPTED, IN_PROGRESS, COMPLETED; the customer rates 5/5 and a second rating gets 409. Result: **all checks passed**. Finding: a completed visit frees its slot (a later booking of that time succeeds); the 409 check belongs before completion.
+
 **Not verified:** the APK has not yet been installed on an emulator or a phone in this check (the live integration test
 below exercised the same app code against the real API); no browser/E2E tests for the web; no multi-worker run
 (SEC-07); the demo video is not recorded.

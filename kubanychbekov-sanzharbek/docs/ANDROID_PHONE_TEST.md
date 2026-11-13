@@ -6,7 +6,7 @@ transfer: `C:\Users\<user>\Downloads\FixFlow-debug.apk`. Rebuild: `cd mobile && 
 
 ## 1. Connect the phone to the local backend
 - The computer and the phone must be on the **same Wi-Fi** (not a guest network with client isolation).
-- Find the computer's IPv4 address: `ipconfig` -> Wi-Fi adapter (on the author's PC: `192.168.0.242`).
+- Find the computer's IPv4 address: `ipconfig` -> Wi-Fi adapter (it changes when the computer joins another network: it was `192.168.0.242` on home Wi-Fi and `10.116.90.235` on the phone's hotspot; re-check with `ipconfig` every time).
 - Check from the computer that the API answers on that address:
   `curl http://<IP>:8000/api/v1/health/ready` -> `{"status":"ok","database":"up"}`.
 - Check from the **phone's browser**: open `http://<IP>:8000/api/v1/health/live` -> `{"status":"ok"}`. If it does not
@@ -40,7 +40,7 @@ All demo passwords are `Demo-2345!` (demo-only). Organization "AIT Facility". Te
 | 8 | Phone | *Complete* with a summary of at least 20 characters and at least one photo | Status *Completed* |
 | 9 | Web, dispatcher | Refresh the request | Status *Completed*, history entries, notes and photo visible, SLA final |
 | 10 | Web, customer | Open the completed request, rate 1-5 | Feedback saved once |
-| 11 | Web, dispatcher | Book the same technician at the same time as another visit | Refused with a conflict (409) message |
+| 11 | Web, dispatcher | **Before step 8** (while the first visit is still active) book the same technician at the same time for another request | Refused with a conflict (409) message. After a visit is completed its slot is free again, so no conflict then |
 
 ## 4. Result of this check
 Fill in after running the scenario (do not mark a line done unless you saw it):
@@ -51,7 +51,7 @@ Fill in after running the scenario (do not mark a line done unless you saw it):
 | Phone reaches `http://<IP>:8000` | not yet confirmed | |
 | Steps 1-11 above | not yet confirmed | |
 
-Already verified without a phone: the same app code (sign-in, task list into the local database, offline queue,
+Already verified without a phone: `scripts/e2e_scenario.py` runs the whole scenario through the real API as customer, dispatcher and technician `tech2.a` (photo, Smart Assign, 409 on the active slot, accept/start, note and photo retried with the same command id stored once, completion, final SLA, one rating then 409 on a second) and printed `all checks passed` against `http://10.116.90.235:8000`. Also: the same app code (sign-in, task list into the local database, offline queue,
 retry with the same command id, photo upload, refused state change) passed `flutter test test/live` against the real
 API through the computer's LAN address `http://192.168.0.242:8000` (2 passed), and `GET /health/ready` answers on that
 address (Docker Desktop's inbound rule for the Public network profile is present).
