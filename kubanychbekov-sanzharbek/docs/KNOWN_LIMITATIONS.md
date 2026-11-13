@@ -22,6 +22,11 @@ Status of work in progress. Nothing is marked done unless it works end to end.
   one escalation per overdue request, overdue queue.
 - Preventive maintenance: weekly/monthly plans, idempotent generation of requests, last/next service per asset.
 - Customer feedback (1-5 + comment, once per request) and the administrator audit feed.
+- Properties and equipment (create/edit, retire, history with technicians, results, materials and photos, open work,
+  last and next service), staff and roles, service categories, technician skills and availability, organization name
+  and time zone, SLA report, reports with period/category/technician filters, technician load (method documented),
+  approved-estimate and material totals, request-list filters by technician and dates with due-date sorting.
+- Notes with public/internal visibility, materials and one unified request timeline in the web; live updates (SSE).
 - Web (EN/RU): landing, sign-in, organization picker, dashboard with charts and SLA totals, requests
   list/new (with photos)/detail, assignment panel with Smart Assign, schedule, estimates, SLA badge and
   overdue queue, inventory with low stock, maintenance plans, notifications inbox, admin settings (working
@@ -29,7 +34,8 @@ Status of work in progress. Nothing is marked done unless it works end to end.
 - Android (Flutter): sign-in, organization choice, task list from a local database, task details,
   accept / decline / start / block / resume / complete, notes and photos with an offline queue,
   stable command ids, conflict handling, materials write-off (online), approved estimate total,
-  notifications, profile, EN/RU. A debug APK builds (see `VERIFICATION.md`).
+  notifications, profile with own availability, SLA and earlier jobs on the equipment, EN/RU. A debug APK builds
+  (see `VERIFICATION.md`).
 - Compose runs `db`, `backend` and `web`; `scripts/smoke.sh` checks the real lifecycle, a 409 double
   booking and tenant isolation.
 
@@ -38,8 +44,11 @@ Status of work in progress. Nothing is marked done unless it works end to end.
   server); the web refetches the affected data on each hint and everything after a reconnect (notifications also
   refetch every 30 s). Android does not listen to the stream and refreshes on
   start, pull-to-refresh and sync.
-- **The APK has not been installed on a device or emulator** in the final check; the app code was exercised against
-  the real API by `mobile/test/live` and the widget tests. Install it before recording the video.
+- **Physical phone, partly confirmed.** The candidate installed the APK on a real Android phone, signed in and saw the
+  task list from the real backend (reported by the candidate, not recorded by an automated check). The rest of the phone
+  scenario (`docs/ANDROID_PHONE_TEST.md` steps 4-11: accept/start, note and photo, airplane mode, completion) is
+  **NOT VERIFIED** on a device by the assistant: Android refused remote taps over USB (`INJECT_EVENTS`). The same steps
+  are covered against the real API by `scripts/e2e_scenario.py` and `mobile/test/live`.
 - **Risk register (SEC-09):** (1) per-e-mail login lockout can be used to pause an account (see below), mitigation:
   15-minute window, audit of failures, no per-IP limit yet; (2) the Android session token is in app-private storage,
   not the keystore, mitigation: sandboxed storage, token revocable server-side; (3) plain HTTP is allowed for local
@@ -49,7 +58,15 @@ Status of work in progress. Nothing is marked done unless it works end to end.
   e-mail can pause that account for up to 15 minutes; there is no CAPTCHA or per-IP limit.
 - **LIFE-05 materials**: completion does not ask the technician to confirm "no materials used"; materials are
   accounted by the atomic write-off (see `PRODUCT_DECISIONS.md`).
-- **Verification**: no browser/E2E tests for the web; no instrumented tests for Android.
+- **Verification**: no browser/E2E tests for the web (the web was exercised through its API and unit tests plus manual
+  browser checks); no instrumented tests for Android. The request timeline and the notes panel in the web have no
+  automated UI test; the data they show is covered by the backend tests.
+- **Request body limit** covers requests that declare `Content-Length`; chunked bodies without a length are not
+  capped by that middleware (photo uploads are still size-checked while reading).
+- **Report period** is limited to 90 days; the technician load report counts all non-cancelled assignments in the
+  period, including completed ones, and caps the result at 100% (explained in the `method` field).
+- **Demo data:** the demo database has no material write-offs, so the "materials used" total starts at 0 until a
+  technician writes material off.
 - Customers see every active property of their organization (there is no customer-to-property link).
 - The Android app keeps its session token in the app's private storage (sembast), not in the
   hardware-backed keystore, and allows plain HTTP for local development.
