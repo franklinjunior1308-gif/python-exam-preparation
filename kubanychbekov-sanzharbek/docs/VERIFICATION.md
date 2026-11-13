@@ -160,3 +160,32 @@ restarted); it was fixed in `task_detail_screen.dart` and a widget test that fai
 suite now 38 tests, `flutter analyze` and `dart format` clean). The APK installed on the phone and copied to Downloads is
 the rebuilt one: 190 285 366 bytes, SHA-256 `d29a54a5d37e84c72bf2bb7a8a36e8ca9db92ad7f7adc6012fea0711a7870a03`. Backend (284) and web (23) were not changed after the last full
 `verify-all`; the Flutter suite was rerun on its own after this fix.
+
+
+## `make up` and clean-clone rehearsal - 2026-11-13
+Done from a **fresh `git clone` of the personal branch `fixflow`** (commit `3d61c5d`, 276 tracked files, no `node_modules`,
+no `.env`, no build folders) in a separate folder, with its own compose project (`cleanclone`), ports 18000/13000 and its
+own volumes. The working database and its Docker volumes were not touched.
+
+| Step | Result |
+|---|---|
+| `make up` (builds the images, starts db + backend + web, waits for readiness, loads the seed) | exit 0 |
+| `GET /api/v1/health/ready`, web `/` and `/login` | `{"status":"ok","database":"up"}`, 200, 200 |
+| Repeated seed (`make seed`) | adds nothing: requests/assets/inventory/plans/users/technicians 74/16/38/6/15/6 before and after |
+| `make sla-scan` | 25 escalations created once |
+| `./scripts/smoke.sh` | `smoke: all checks passed` (409 double booking, other organization gets 404) |
+| `scripts/e2e_scenario.py` | `E2E scenario: all checks passed` |
+| `BACKEND_TESTS_IN_DOCKER=1 ./scripts/verify-all.sh` | `ALL CHECKS PASSED` (backend 284 passed, web 23 pass, Flutter 38 passed, debug APK built) |
+
+`make up` was also run on the working stack: containers were recreated, the API became ready, `make seed` skipped both
+organizations and a second seed left the counts unchanged (91 requests, 16 assets, 20 inventory items, 6 plans, 16 users);
+the data volumes `kubanychbekov-sanzharbek_db_data` and `_uploads` were kept.
+
+Found and fixed during the rehearsal: the first clean-clone `make up` failed once because `bun install` inside the web
+image lost its network connection. Both Dockerfiles now retry the package download up to three times, and the lock files
+and the Makefile are pinned to LF line endings in `.gitattributes`. The second rehearsal passed completely.
+`make` itself was not installed on the author's Windows machine; it was installed with the author's permission
+(`winget install ezwinports.make`) and is optional (every target is a plain `docker compose` or script call).
+
+Left on the machine on purpose: Docker volumes `rehearsal_*` and `cleanclone_*` (throwaway data of these rehearsals; deleting
+Docker volumes was blocked and is not needed) and the clone folders under `C:\dev\cleanclone-*`.
