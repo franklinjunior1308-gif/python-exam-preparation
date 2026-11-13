@@ -35,7 +35,8 @@ Status of work in progress. Nothing is marked done unless it works end to end.
 
 ## Not implemented yet (do not treat as done)
 - **Live updates** (API-06): the backend streams change hints over SSE (`GET /events`, polled every 2 s on the
-  server); the web uses them with a timer fallback. Android does not listen to the stream and refreshes on
+  server); the web refetches the affected data on each hint and everything after a reconnect (notifications also
+  refetch every 30 s). Android does not listen to the stream and refreshes on
   start, pull-to-refresh and sync.
 - **The APK has not been installed on a device or emulator** in the final check; the app code was exercised against
   the real API by `mobile/test/live` and the widget tests. Install it before recording the video.

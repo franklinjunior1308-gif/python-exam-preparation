@@ -39,6 +39,15 @@ is recorded there only after they are run by hand.
 
 **Whole scenario through the API** (`scripts/e2e_scenario.py`, 2026-11-13, against `http://10.116.90.235:8000`, the computer's address on the phone's hotspot): customer creates an HVAC request with a photo; dispatcher triages, Smart Assign lists suggestions, assigns `tech2.a`; a second booking of the same slot is refused with 409; the technician sees the task, accepts, starts; the note and the photo retried with the same command id are stored once; completion; the dispatcher sees COMPLETED with the final SLA and history SUBMITTED, TRIAGED, SCHEDULED, ACCEPTED, IN_PROGRESS, COMPLETED; the customer rates 5/5 and a second rating gets 409. Result: **all checks passed**. Finding: a completed visit frees its slot (a later booking of that time succeeds); the 409 check belongs before completion.
 
+**Web screens added after the final run (2026-11-13, by hand in the browser against the running stack):** Staff and roles
+(weak password rejected on the form; a member created and deactivated; removing the only administrator is refused with
+the translated message), Categories (list with skills; a duplicate name gives the translated conflict), SLA report
+(80 % on time, 10 finished, average 11 h 26 min over 30 days, per-priority table) and **live updates**: with the request
+list open, two requests created through the API appeared in the same page without a reload (rows 0 -> 1 -> 2, indicator
+"Live"); the stream answers `200 text/event-stream` through the web proxy. `bun run lint`, `typecheck`, `test:ci` (23)
+pass. The Docker build of the web image and the full `verify-all.sh` were last run before these screens: rerun before
+submission.
+
 **Not verified:** the APK has not yet been installed on an emulator or a phone in this check (the live integration test
 below exercised the same app code against the real API); no browser/E2E tests for the web; no multi-worker run
 (SEC-07); the demo video is not recorded.

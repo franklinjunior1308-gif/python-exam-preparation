@@ -13,8 +13,10 @@ login lockout, organizations and roles, requests with the full lifecycle, techni
 database-level overlap guard, **Smart Assign** (the original feature, [docs/PRODUCT_DECISIONS.md](docs/PRODUCT_DECISIONS.md)),
 notes, photos, estimates with approval, inventory with atomic write-off, SLA with working hours, preventive
 maintenance, notifications, customer feedback, audit log, EN/RU web UI, and an Android app with an offline queue.
-**Not done:** user/role management and category administration screens, live updates (WebSocket/SSE), an SLA
-report beyond the dashboard totals. Full, honest list: [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
+Also working: staff and roles, service-category administration, technician skills and availability, SLA report, and
+live updates (server-sent events, the lists refresh without a reload). **Not done / limited:** the Android app does
+not listen to the live stream (it refreshes on start, pull-to-refresh and sync), the APK is not yet confirmed on a real
+phone, no browser end-to-end tests. Full, honest list: [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
 
 ## Requirements and verified versions
 
