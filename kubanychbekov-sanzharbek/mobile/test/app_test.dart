@@ -421,6 +421,100 @@ void main() {
     });
   });
 
+  group('task context and availability (MOB-01, MOB-02)', () {
+    final taskJson = {
+      'assignment_id': 5,
+      'assignment_status': 'ACCEPTED',
+      'start_at': '2026-11-16T04:00:00Z',
+      'end_at': '2026-11-16T06:00:00Z',
+      'timezone': 'Asia/Bishkek',
+      'request_id': 28,
+      'title': 'Ventilation fan does not work',
+      'description': 'The extractor fan makes no sound and no air flows out.',
+      'priority': 'HIGH',
+      'request_status': 'ACCEPTED',
+      'allowed_actions': ['IN_PROGRESS'],
+      'category_name': 'HVAC',
+      'property_name': 'Warehouse D',
+      'property_address': '22 Ankara St',
+      'contact_instructions': null,
+      'asset_label': 'Fan (FAN-1)',
+      'customer_name': 'Aidar',
+      'updated_at': '2026-11-12T00:00:00Z',
+      'sla': {
+        'state': 'AT_RISK',
+        'remaining_minutes': 95,
+        'paused': false,
+        'finished': false,
+        'due_at': '2026-11-17T10:00:00Z',
+      },
+      'asset_history': [
+        {
+          'request_id': 12,
+          'title': 'Belt replaced',
+          'completed_at': '2026-10-01T08:00:00Z',
+          'result': 'Replaced the belt and cleaned the filter.',
+        },
+      ],
+    };
+
+    test(
+      'a task keeps its SLA and the earlier jobs after a save and reload',
+      () {
+        final task = Task.fromJson(taskJson);
+        expect(task.sla!.state, 'AT_RISK');
+        expect(task.sla!.remainingMinutes, 95);
+        expect(task.assetHistory.single.result, contains('belt'));
+        final again = Task.fromJson(
+          Map<String, dynamic>.from(
+            jsonDecode(jsonEncode(task.toJson())) as Map,
+          ),
+        );
+        expect(again.sla!.dueAt, task.sla!.dueAt);
+        expect(again.assetHistory.single.requestId, 12);
+      },
+    );
+
+    test('an older cached task without these fields still loads', () {
+      final old = Map<String, dynamic>.from(taskJson)
+        ..remove('sla')
+        ..remove('asset_history');
+      final task = Task.fromJson(old);
+      expect(task.sla, isNull);
+      expect(task.assetHistory, isEmpty);
+    });
+
+    test('working minutes are formatted in both languages', () {
+      expect(formatMinutes('en', 150), '2 h 30 min');
+      expect(formatMinutes('ru', 150), '2 ч 30 мин');
+      expect(formatMinutes('en', -45), '45 min');
+      expect(formatMinutes('ru', 120), '2 ч');
+    });
+
+    test('own availability is read from the server', () async {
+      final state = await buildState((r) async {
+        if (r.url.path.endsWith('/my/availability')) {
+          return jsonResponse(200, {
+            'technician_id': 4,
+            'is_active': true,
+            'skills': ['hvac', 'plumbing'],
+            'timezone': 'Asia/Bishkek',
+            'weekly': [
+              {'weekday': 0, 'start_time': '09:00:00', 'end_time': '18:00:00'},
+            ],
+            'absences': [],
+          });
+        }
+        return jsonResponse(200, []);
+      });
+      await state.init();
+      final me = await state.loadAvailability();
+      expect(me.skills, ['hvac', 'plumbing']);
+      expect(me.weekly.single.start, '09:00');
+      expect(me.weekly.single.weekday, 0);
+    });
+  });
+
   group('login screen layout', () {
     for (final width in [320.0, 360.0, 390.0]) {
       testWidgets(

@@ -123,6 +123,8 @@ class Task {
     required this.updatedAt,
     this.contactInstructions,
     this.assetLabel,
+    this.sla,
+    this.assetHistory = const [],
   });
 
   final int assignmentId;
@@ -143,6 +145,10 @@ class Task {
   final String? assetLabel;
   final String customerName;
   final DateTime updatedAt;
+
+  /// SLA in working time and earlier finished jobs on the same equipment (MOB-02).
+  final TaskSla? sla;
+  final List<TaskHistory> assetHistory;
 
   bool get isActive => activeAssignmentStatuses.contains(assignmentStatus);
   bool get isDone => assignmentStatus == 'COMPLETED';
@@ -166,6 +172,12 @@ class Task {
     assetLabel: json['asset_label'] as String?,
     customerName: json['customer_name'] as String,
     updatedAt: DateTime.parse(json['updated_at'] as String).toUtc(),
+    sla: json['sla'] == null
+        ? null
+        : TaskSla.fromJson(Map<String, dynamic>.from(json['sla'] as Map)),
+    assetHistory: ((json['asset_history'] as List?) ?? const [])
+        .map((e) => TaskHistory.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList(),
   );
 
   Map<String, dynamic> toJson() => {
@@ -187,7 +199,134 @@ class Task {
     'asset_label': assetLabel,
     'customer_name': customerName,
     'updated_at': updatedAt.toIso8601String(),
+    'sla': sla?.toJson(),
+    'asset_history': assetHistory.map((e) => e.toJson()).toList(),
   };
+}
+
+class TaskSla {
+  TaskSla({
+    required this.state,
+    required this.remainingMinutes,
+    required this.paused,
+    required this.finished,
+    this.dueAt,
+  });
+
+  /// ON_TRACK, AT_RISK or OVERDUE
+  final String state;
+  final int remainingMinutes; // negative once overdue
+  final bool paused;
+  final bool finished;
+  final DateTime? dueAt;
+
+  factory TaskSla.fromJson(Map<String, dynamic> json) => TaskSla(
+    state: json['state'] as String,
+    remainingMinutes: json['remaining_minutes'] as int,
+    paused: json['paused'] as bool? ?? false,
+    finished: json['finished'] as bool? ?? false,
+    dueAt: json['due_at'] == null
+        ? null
+        : DateTime.parse(json['due_at'] as String).toUtc(),
+  );
+
+  Map<String, dynamic> toJson() => {
+    'state': state,
+    'remaining_minutes': remainingMinutes,
+    'paused': paused,
+    'finished': finished,
+    'due_at': dueAt?.toIso8601String(),
+  };
+}
+
+class TaskHistory {
+  TaskHistory({
+    required this.requestId,
+    required this.title,
+    this.completedAt,
+    this.result,
+  });
+
+  final int requestId;
+  final String title;
+  final DateTime? completedAt;
+  final String? result;
+
+  factory TaskHistory.fromJson(Map<String, dynamic> json) => TaskHistory(
+    requestId: json['request_id'] as int,
+    title: json['title'] as String,
+    completedAt: json['completed_at'] == null
+        ? null
+        : DateTime.parse(json['completed_at'] as String).toUtc(),
+    result: json['result'] as String?,
+  );
+
+  Map<String, dynamic> toJson() => {
+    'request_id': requestId,
+    'title': title,
+    'completed_at': completedAt?.toIso8601String(),
+    'result': result,
+  };
+}
+
+/// The technician's own skills, weekly hours and upcoming absences (MOB-01).
+class MyAvailability {
+  MyAvailability({
+    required this.isActive,
+    required this.skills,
+    required this.timezone,
+    required this.weekly,
+    required this.absences,
+  });
+
+  final bool isActive;
+  final List<String> skills;
+  final String timezone;
+  final List<AvailabilityDay> weekly;
+  final List<AbsencePeriod> absences;
+
+  factory MyAvailability.fromJson(Map<String, dynamic> json) => MyAvailability(
+    isActive: json['is_active'] as bool,
+    skills: (json['skills'] as List).cast<String>(),
+    timezone: json['timezone'] as String,
+    weekly: (json['weekly'] as List)
+        .map(
+          (e) => AvailabilityDay.fromJson(Map<String, dynamic>.from(e as Map)),
+        )
+        .toList(),
+    absences: (json['absences'] as List)
+        .map((e) => AbsencePeriod.fromJson(Map<String, dynamic>.from(e as Map)))
+        .toList(),
+  );
+}
+
+class AvailabilityDay {
+  AvailabilityDay(this.weekday, this.start, this.end);
+
+  final int weekday; // 0 = Monday
+  final String start; // HH:MM
+  final String end;
+
+  factory AvailabilityDay.fromJson(Map<String, dynamic> json) =>
+      AvailabilityDay(
+        json['weekday'] as int,
+        (json['start_time'] as String).substring(0, 5),
+        (json['end_time'] as String).substring(0, 5),
+      );
+}
+
+class AbsencePeriod {
+  AbsencePeriod(this.start, this.end, this.reason);
+
+  final DateTime start;
+  final DateTime end;
+  final String? reason;
+
+  factory AbsencePeriod.fromJson(Map<String, dynamic> json) => AbsencePeriod(
+    DateTime.parse(json['start_at'] as String).toUtc(),
+    DateTime.parse(json['end_at'] as String).toUtc(),
+    json['reason'] as String?,
+  );
 }
 
 enum QueueType { note, photo }

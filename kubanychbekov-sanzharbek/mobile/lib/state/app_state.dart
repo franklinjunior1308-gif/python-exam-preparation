@@ -421,6 +421,11 @@ class AppState extends ChangeNotifier {
         .toList();
   }
 
+  Future<MyAvailability> loadAvailability() async {
+    final raw = await api!.get('my/availability') as Map;
+    return MyAvailability.fromJson(Map<String, dynamic>.from(raw));
+  }
+
   Future<List<InventoryItem>> loadInventory() async {
     final raw = await api!.get('inventory') as List;
     return raw

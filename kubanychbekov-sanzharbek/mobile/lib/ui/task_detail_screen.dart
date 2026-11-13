@@ -467,6 +467,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
               ],
             ),
           ),
+          if (task.sla != null) _SlaCard(sla: task.sla!, task: task),
           if (actions.isNotEmpty) ...[
             Text(
               context.t('detail.actions'),
@@ -540,6 +541,37 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
                 ],
               ),
             ),
+          if (task.assetHistory.isNotEmpty) ...[
+            Text(
+              context.t('history.title'),
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 6),
+            for (final h in task.assetHistory)
+              FxCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '#${h.requestId} · ${h.title}',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    if (h.completedAt != null)
+                      Text(
+                        context.t('history.done', {
+                          'when': formatWhen(h.completedAt!, tz, state.lang),
+                        }),
+                        style: const TextStyle(color: Fx.muted, fontSize: 12),
+                      ),
+                    if (h.result != null) ...[
+                      const SizedBox(height: 4),
+                      Text(h.result!),
+                    ],
+                  ],
+                ),
+              ),
+            const SizedBox(height: 12),
+          ],
           if (queued.isNotEmpty) ...[
             Text(
               context.t('detail.waiting'),
@@ -686,4 +718,65 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       ],
     ),
   );
+}
+
+/// SLA in working time: state, deadline and what is left (MOB-02). The state is never shown by
+/// colour alone: it always carries a text label.
+class _SlaCard extends StatelessWidget {
+  const _SlaCard({required this.sla, required this.task});
+
+  final TaskSla sla;
+  final Task task;
+
+  @override
+  Widget build(BuildContext context) {
+    final lang = context.watch<AppState>().lang;
+    final color = switch (sla.state) {
+      'OVERDUE' => Fx.danger,
+      'AT_RISK' => Fx.warn,
+      _ => Fx.ok,
+    };
+    final String detail;
+    if (sla.finished) {
+      detail = context.t('sla.finished');
+    } else if (sla.paused) {
+      detail = context.t('sla.paused');
+    } else if (sla.remainingMinutes < 0) {
+      detail = context.t('sla.over', {
+        't': formatMinutes(lang, sla.remainingMinutes),
+      });
+    } else {
+      detail = context.t('sla.left', {
+        't': formatMinutes(lang, sla.remainingMinutes),
+      });
+    }
+    return FxCard(
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  context.t('sla.title'),
+                  style: const TextStyle(color: Fx.muted, fontSize: 12),
+                ),
+                const SizedBox(height: 4),
+                Text(detail),
+                if (sla.dueAt != null && !sla.finished)
+                  Text(
+                    context.t('sla.due', {
+                      'when': formatWhen(sla.dueAt!, task.timezone, lang),
+                    }),
+                    style: const TextStyle(color: Fx.muted, fontSize: 12),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Pill(context.t('sla.${sla.state}'), color: color),
+        ],
+      ),
+    );
+  }
 }

@@ -1,6 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:provider/provider.dart';
 
+import '../i18n.dart';
+import '../models/models.dart';
 import '../state/app_state.dart';
 import '../theme.dart';
 import 'org_screen.dart';
@@ -87,6 +89,8 @@ class ProfileTab extends StatelessWidget {
             ],
           ),
         ),
+        const SizedBox(height: 12),
+        const _AvailabilityCard(),
         if (session.memberships.length > 1)
           OutlinedButton.icon(
             onPressed: () => Navigator.of(context).push(
@@ -146,5 +150,106 @@ class ProfileTab extends StatelessWidget {
       if (ok != true) return;
     }
     await state.logout();
+  }
+}
+
+/// The technician's own skills, weekly hours and upcoming absences, read from the server (MOB-01).
+class _AvailabilityCard extends StatefulWidget {
+  const _AvailabilityCard();
+
+  @override
+  State<_AvailabilityCard> createState() => _AvailabilityCardState();
+}
+
+class _AvailabilityCardState extends State<_AvailabilityCard> {
+  Future<MyAvailability>? _future;
+
+  @override
+  Widget build(BuildContext context) {
+    final state = context.watch<AppState>();
+    if (state.online && _future == null) _future = state.loadAvailability();
+    if (!state.online || _future == null) {
+      return FxCard(
+        child: Text(
+          context.t('avail.offline'),
+          style: const TextStyle(color: Fx.orange),
+        ),
+      );
+    }
+    return FutureBuilder<MyAvailability>(
+      future: _future,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const FxCard(child: LinearProgressIndicator());
+        }
+        if (snapshot.hasError || snapshot.data == null) {
+          return FxCard(
+            child: Text(
+              context.t('avail.offline'),
+              style: const TextStyle(color: Fx.orange),
+            ),
+          );
+        }
+        final data = snapshot.data!;
+        final lang = state.lang;
+        final byDay = {for (final d in data.weekly) d.weekday: <String>[]};
+        for (final d in data.weekly) {
+          byDay[d.weekday]!.add('${d.start}-${d.end}');
+        }
+        return FxCard(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.t('avail.title'),
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              if (!data.isActive)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    context.t('avail.inactive'),
+                    style: const TextStyle(color: Fx.orange),
+                  ),
+                ),
+              const SizedBox(height: 8),
+              Text(
+                context.t('avail.skills'),
+                style: const TextStyle(color: Fx.muted, fontSize: 12),
+              ),
+              Text(
+                data.skills.isEmpty
+                    ? context.t('avail.none')
+                    : data.skills.join(', '),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                context.t('avail.hours'),
+                style: const TextStyle(color: Fx.muted, fontSize: 12),
+              ),
+              for (var day = 0; day < 7; day++)
+                Text(
+                  '${context.t('day.$day')}: '
+                  '${byDay[day] == null ? context.t('avail.closed') : byDay[day]!.join(', ')}',
+                ),
+              const SizedBox(height: 8),
+              Text(
+                context.t('avail.absences'),
+                style: const TextStyle(color: Fx.muted, fontSize: 12),
+              ),
+              if (data.absences.isEmpty)
+                Text(context.t('avail.none'))
+              else
+                for (final a in data.absences)
+                  Text(
+                    '${formatWhen(a.start, data.timezone, lang)} - '
+                    '${formatWhen(a.end, data.timezone, lang)}'
+                    '${a.reason == null ? '' : ' (${a.reason})'}',
+                  ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }

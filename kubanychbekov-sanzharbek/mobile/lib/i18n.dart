@@ -175,6 +175,35 @@ const Map<String, String> en = {
   'notif.request_completed': 'Request #{id} was completed',
   'notif.sla_overdue': 'Request #{id} is past its SLA',
   'notif.estimate_submitted': 'Estimate for request #{id} awaits your decision',
+  'sla.title': 'SLA',
+  'sla.ON_TRACK': 'On track',
+  'sla.AT_RISK': 'At risk',
+  'sla.OVERDUE': 'Overdue',
+  'sla.due': 'Due {when}',
+  'sla.left': '{t} of working time left',
+  'sla.over': 'Overdue by {t} of working time',
+  'sla.paused': 'Clock paused: the estimate waits for the customer',
+  'sla.finished': 'Finished: the result is fixed at completion',
+  'time.m': '{m} min',
+  'time.h': '{h} h',
+  'time.hm': '{h} h {m} min',
+  'history.title': 'Earlier jobs on this equipment',
+  'history.done': 'Completed {when}',
+  'avail.title': 'Availability',
+  'avail.skills': 'Skills',
+  'avail.hours': 'Weekly hours',
+  'avail.absences': 'Upcoming absences',
+  'avail.none': 'None',
+  'avail.offline': 'Availability needs a connection to the server.',
+  'avail.inactive': 'Your profile is inactive: no new tasks are assigned.',
+  'avail.closed': 'Day off',
+  'day.0': 'Mon',
+  'day.1': 'Tue',
+  'day.2': 'Wed',
+  'day.3': 'Thu',
+  'day.4': 'Fri',
+  'day.5': 'Sat',
+  'day.6': 'Sun',
   'err.generic': 'The operation failed. Please try again.',
 };
 
@@ -352,6 +381,35 @@ const Map<String, String> ru = {
   'notif.request_completed': 'Заявка #{id} выполнена',
   'notif.sla_overdue': 'Заявка #{id} просрочена по SLA',
   'notif.estimate_submitted': 'Смета по заявке #{id} ждёт вашего решения',
+  'sla.title': 'SLA',
+  'sla.ON_TRACK': 'В срок',
+  'sla.AT_RISK': 'Под угрозой',
+  'sla.OVERDUE': 'Просрочено',
+  'sla.due': 'Срок: {when}',
+  'sla.left': 'Осталось {t} рабочего времени',
+  'sla.over': 'Просрочено на {t} рабочего времени',
+  'sla.paused': 'Таймер на паузе: смета ждёт решения заказчика',
+  'sla.finished': 'Завершено: результат зафиксирован при завершении',
+  'time.m': '{m} мин',
+  'time.h': '{h} ч',
+  'time.hm': '{h} ч {m} мин',
+  'history.title': 'Прошлые работы на этом оборудовании',
+  'history.done': 'Выполнено {when}',
+  'avail.title': 'Доступность',
+  'avail.skills': 'Навыки',
+  'avail.hours': 'Часы работы',
+  'avail.absences': 'Ближайшие отсутствия',
+  'avail.none': 'Нет',
+  'avail.offline': 'Для доступности нужно подключение к серверу.',
+  'avail.inactive': 'Профиль неактивен: новые задания не назначаются.',
+  'avail.closed': 'Выходной',
+  'day.0': 'Пн',
+  'day.1': 'Вт',
+  'day.2': 'Ср',
+  'day.3': 'Чт',
+  'day.4': 'Пт',
+  'day.5': 'Сб',
+  'day.6': 'Вс',
   'err.generic': 'Операция не удалась. Повторите попытку.',
 };
 
@@ -373,6 +431,16 @@ String trNotificationTitle(
   final key = 'notif.$type';
   if (requestId == null || !en.containsKey(key)) return serverTitle;
   return tr(lang, key, {'id': requestId});
+}
+
+/// Working minutes as "2 h 30 min" in the chosen language.
+String formatMinutes(String lang, int minutes) {
+  final total = minutes.abs();
+  final h = total ~/ 60;
+  final m = total % 60;
+  if (h == 0) return tr(lang, 'time.m', {'m': m});
+  if (m == 0) return tr(lang, 'time.h', {'h': h});
+  return tr(lang, 'time.hm', {'h': h, 'm': m});
 }
 
 /// Backend error code -> translated message, with a safe fallback.
