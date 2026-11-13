@@ -13,7 +13,7 @@ runs, kept for history; the numbers in the first section are the current ones.
 | Backend tests | `docker compose --profile test run --rm backend-tests` (real PostgreSQL) | **245 passed**, 0 failed, 1 deprecation warning from a dependency |
 | Web | `bun install --frozen-lockfile`, `lint`, `typecheck`, `test:ci`, `build` | all exit 0; **23 tests passed** |
 | Mobile | `flutter pub get`, `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze`, `flutter test` | clean; **28 passed** (2 live-backend tests are skipped without `FIXFLOW_API`) |
-| APK | `flutter build apk --debug` | built `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 268 742 bytes, SHA-256 `e0bd783215647002b4a6e7e5fddf3c81a1eaad5bb12f118b40bd95da04f42085` (a build output; it is not committed) |
+| APK | `flutter build apk --debug` | built `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 268 987 bytes, SHA-256 `19e4e4df897750315ae3f4c6b34c187346808a5f4f5d0a881f6bf423864321d9` (a build output; it is not committed) |
 
 Why the Docker switch: on the author's PC Windows Smart App Control blocks `pydantic_core`, so app-importing tests
 cannot run on the host. Without the switch (`./scripts/verify-all.sh`) the same script runs `uv run pytest -q` on the
@@ -116,8 +116,8 @@ Run on the author's Windows machine, backend tests in Docker (`BACKEND_TESTS_IN_
 | Web | `bun run lint`, `typecheck`, `test:ci`, `build` | clean, 23 tests passed, production build succeeded |
 | Android | `dart format`, `flutter analyze`, `flutter test`, `flutter build apk --debug` | clean, 28 passed (2 live tests skipped without `FIXFLOW_API`), APK built |
 
-APK: `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 268 742 bytes,
-SHA-256 `e0bd783215647002b4a6e7e5fddf3c81a1eaad5bb12f118b40bd95da04f42085`.
+APK: `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 268 987 bytes,
+SHA-256 `19e4e4df897750315ae3f4c6b34c187346808a5f4f5d0a881f6bf423864321d9`.
 **Still not checked on a physical phone** (see `ANDROID_PHONE_TEST.md`).
 
 **Do not run two backend-test runs against the same database at once.** The suite truncates shared tables, so two

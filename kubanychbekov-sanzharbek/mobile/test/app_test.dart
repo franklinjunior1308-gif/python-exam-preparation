@@ -66,6 +66,7 @@ http.Response jsonResponse(int status, Object body) => http.Response(
 Future<AppState> buildState(
   MockClientHandler handler, {
   bool signedIn = true,
+  String lang = 'en',
 }) async {
   final store = await LocalStore.open(newDatabaseFactoryMemory(), 'app.db');
   if (signedIn) {
@@ -78,7 +79,7 @@ Future<AppState> buildState(
     store: store,
     httpClient: MockClient(handler),
     photosDir: Directory.systemTemp,
-    initialLang: 'en',
+    initialLang: lang,
   );
   return state;
 }
@@ -368,16 +369,23 @@ void main() {
           tester.view.devicePixelRatio = 1;
           addTearDown(tester.view.reset);
           final state = (await tester.runAsync(
-            () =>
-                buildState((r) async => jsonResponse(200, []), signedIn: false),
+            () => buildState(
+              (r) async => jsonResponse(200, []),
+              signedIn: false,
+              lang: 'ru',
+            ),
           ))!;
-          await tester.runAsync(() => state.setLang('ru'));
           await pumpApp(tester, state);
           expect(find.text('FixFlow'), findsOneWidget);
           expect(
             tester.takeException(),
             isNull,
-          ); // an overflow would be reported here
+          ); // an overflow is reported here
+          // leave no timers behind: let the store finish before the tree is disposed
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 100)),
+          );
+          await tester.pump(const Duration(seconds: 1));
         },
       );
     }
