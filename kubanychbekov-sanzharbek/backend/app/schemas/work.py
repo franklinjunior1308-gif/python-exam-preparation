@@ -1,10 +1,11 @@
 import re
-from datetime import datetime
+from datetime import datetime, time
 from typing import Annotated
 
 from pydantic import AfterValidator, BaseModel, ConfigDict, Field
 
 from app.domain.enums import AssignmentStatus, NoteVisibility, Priority, RequestStatus
+from app.schemas.sla import SlaOut
 
 _COMMAND_ID = re.compile(r"^[A-Za-z0-9_-]{8,64}$")
 
@@ -71,6 +72,36 @@ class NotificationOut(BaseModel):
     created_at: datetime
 
 
+class TaskHistoryItem(BaseModel):
+    """An earlier finished job on the same equipment, without costs or customer data."""
+
+    request_id: int
+    title: str
+    completed_at: datetime | None
+    result: str | None
+
+
+class AbsenceOut(BaseModel):
+    start_at: datetime
+    end_at: datetime
+    reason: str | None
+
+
+class AvailabilitySpan(BaseModel):
+    weekday: int  # 0 = Monday
+    start_time: time
+    end_time: time
+
+
+class MyAvailabilityOut(BaseModel):
+    technician_id: int
+    is_active: bool
+    skills: list[str]
+    timezone: str
+    weekly: list[AvailabilitySpan]
+    absences: list[AbsenceOut]
+
+
 class MyTaskOut(BaseModel):
     """A technician's task: only what is needed to do the job (ROLE-03)."""
 
@@ -92,3 +123,5 @@ class MyTaskOut(BaseModel):
     asset_label: str | None
     customer_name: str
     updated_at: datetime
+    sla: SlaOut | None = None
+    asset_history: list[TaskHistoryItem] = []

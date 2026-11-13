@@ -10,6 +10,7 @@ from app.schemas.work import (
     AttachmentOut,
     CommandId,
     CompleteIn,
+    MyAvailabilityOut,
     MyTaskOut,
     NoteCreate,
     NoteOut,
@@ -29,6 +30,12 @@ def my_tasks(
     ctx: OrgDep, db: DbDep, days_back: Annotated[int, Query(ge=0, le=60)] = 14
 ) -> list[MyTaskOut]:
     return service.my_tasks(db, ctx, days_back)
+
+
+@router.get("/my/availability", response_model=MyAvailabilityOut)
+def my_availability(ctx: OrgDep, db: DbDep) -> MyAvailabilityOut:
+    """The signed-in technician's skills, weekly hours and upcoming absences."""
+    return service.my_availability(db, ctx)
 
 
 @router.get("/requests/{request_id}/notes", response_model=list[NoteOut])

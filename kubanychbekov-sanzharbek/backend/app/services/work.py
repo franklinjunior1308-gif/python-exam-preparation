@@ -3,6 +3,7 @@
 import hashlib
 import io
 import uuid
+from datetime import UTC, datetime
 from pathlib import Path
 
 from PIL import Image, UnidentifiedImageError
@@ -29,11 +30,23 @@ from app.models import (
     RequestStatusHistory,
     ServiceCategory,
     ServiceRequest,
+    TechnicianAbsence,
+    TechnicianAvailability,
     TechnicianProfile,
+    TechnicianSkill,
     User,
     WorkNote,
 )
-from app.schemas.work import MyTaskOut, NoteCreate, NoteOut
+from app.schemas.work import (
+    AbsenceOut,
+    AvailabilitySpan,
+    MyAvailabilityOut,
+    MyTaskOut,
+    NoteCreate,
+    NoteOut,
+    TaskHistoryItem,
+)
+from app.services import sla as sla_service
 from app.services.audit import record_audit
 from app.services.notifications import notify, notify_staff
 from app.services.requests import assigned_set, get_request
@@ -456,7 +469,7 @@ def complete_work(
 # ---------------------------------------------------------------- technician task list
 def my_tasks(db: Session, ctx: OrgContext, days_back: int) -> list[MyTaskOut]:
     """Assignments of the signed-in technician with the request data needed to do the work."""
-    from datetime import UTC, datetime, timedelta
+    from datetime import timedelta
 
     if ctx.role != Role.TECHNICIAN:
         raise AppError(403, "forbidden", "Only technicians have a task list")
@@ -494,6 +507,9 @@ def my_tasks(db: Session, ctx: OrgContext, days_back: int) -> list[MyTaskOut]:
         .order_by(Assignment.start_at)
     ).all()
 
+    slas = sla_service.sla_for(db, ctx.org_id, ctx.organization.timezone, [r[1] for r in rows])
+    history = _asset_history_for_tasks(db, ctx.org_id, rows)
+
     tasks: list[MyTaskOut] = []
     for assignment, req, category, prop, asset, customer in rows:
         active = assignment.status in ACTIVE_ASSIGNMENT_STATUSES
@@ -519,6 +535,95 @@ def my_tasks(db: Session, ctx: OrgContext, days_back: int) -> list[MyTaskOut]:
                 asset_label=f"{asset.name} ({asset.code})" if asset else None,
                 customer_name=customer.full_name,
                 updated_at=req.updated_at,
+                sla=slas.get(req.id),
+                asset_history=history.get(req.id, []),
             )
         )
     return tasks
+
+
+def _asset_history_for_tasks(db: Session, org_id: int, rows) -> dict[int, list[TaskHistoryItem]]:
+    """Up to five earlier finished jobs on the same equipment, newest first (MOB-02).
+
+    Only titles, dates and the technician's closing note: no costs, customers or other staff.
+    """
+    by_asset: dict[int, list[int]] = {}
+    for _a, req, _c, _p, asset, _u in rows:
+        if asset is not None:
+            by_asset.setdefault(asset.id, []).append(req.id)
+    out: dict[int, list[TaskHistoryItem]] = {}
+    for asset_id, task_request_ids in by_asset.items():
+        finished = db.execute(
+            select(
+                ServiceRequest.id, ServiceRequest.title, func.max(RequestStatusHistory.created_at)
+            )
+            .join(RequestStatusHistory, RequestStatusHistory.request_id == ServiceRequest.id)
+            .where(
+                ServiceRequest.organization_id == org_id,
+                ServiceRequest.asset_id == asset_id,
+                RequestStatusHistory.to_status == RequestStatus.COMPLETED,
+                ServiceRequest.id.notin_(task_request_ids),
+            )
+            .group_by(ServiceRequest.id, ServiceRequest.title)
+            .order_by(func.max(RequestStatusHistory.created_at).desc())
+            .limit(5)
+        ).all()
+        ids = [r[0] for r in finished]
+        notes = {}
+        if ids:
+            for rid, body in db.execute(
+                select(WorkNote.request_id, WorkNote.body)
+                .where(WorkNote.request_id.in_(ids), WorkNote.kind == "completion")
+                .order_by(WorkNote.id)
+            ):
+                notes[rid] = body
+        items = [
+            TaskHistoryItem(request_id=rid, title=title, completed_at=done, result=notes.get(rid))
+            for rid, title, done in finished
+        ]
+        for rid in task_request_ids:
+            out[rid] = items
+    return out
+
+
+def my_availability(db: Session, ctx: OrgContext) -> MyAvailabilityOut:
+    """The technician's own skills, weekly hours and absences (MOB-01)."""
+    if ctx.role != Role.TECHNICIAN:
+        raise AppError(403, "forbidden", "Only technicians have an availability profile")
+    profile = db.scalar(
+        select(TechnicianProfile).where(
+            TechnicianProfile.organization_id == ctx.org_id,
+            TechnicianProfile.user_id == ctx.user.id,
+        )
+    )
+    if profile is None:
+        raise AppError(404, "technician_not_found", "No technician profile")
+    skills = sorted(
+        db.scalars(select(TechnicianSkill.skill).where(TechnicianSkill.technician_id == profile.id))
+    )
+    weekly = db.scalars(
+        select(TechnicianAvailability)
+        .where(TechnicianAvailability.technician_id == profile.id)
+        .order_by(TechnicianAvailability.weekday, TechnicianAvailability.start_time)
+    )
+    absences = db.scalars(
+        select(TechnicianAbsence)
+        .where(
+            TechnicianAbsence.technician_id == profile.id,
+            TechnicianAbsence.end_at >= datetime.now(UTC),
+        )
+        .order_by(TechnicianAbsence.start_at)
+    )
+    return MyAvailabilityOut(
+        technician_id=profile.id,
+        is_active=profile.is_active,
+        skills=skills,
+        timezone=ctx.organization.timezone,
+        weekly=[
+            AvailabilitySpan(weekday=w.weekday, start_time=w.start_time, end_time=w.end_time)
+            for w in weekly
+        ],
+        absences=[
+            AbsenceOut(start_at=a.start_at, end_at=a.end_at, reason=a.reason) for a in absences
+        ],
+    )

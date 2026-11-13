@@ -473,3 +473,17 @@ def sort_by_due(
         reverse=descending,
     )
     return with_due + [r for r in rows if due[r.id] is None]
+
+
+def sla_for(
+    db: Session, org_id: int, timezone: str, requests: list[ServiceRequest]
+) -> dict[int, SlaOut]:
+    """SLA of several requests with one calendar and two queries (technician task list, MOB-02)."""
+    if not requests:
+        return {}
+    now = datetime.now(UTC)
+    calendar = load_calendar(db, org_id, timezone)
+    ids = [r.id for r in requests]
+    pauses = _pauses(db, ids, now)
+    done = _completed_at(db, ids)
+    return {r.id: compute(r, calendar, pauses[r.id], done.get(r.id), now) for r in requests}
