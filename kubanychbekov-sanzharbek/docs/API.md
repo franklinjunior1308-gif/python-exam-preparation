@@ -175,3 +175,13 @@ Customers and technicians only get hints for requests they can see; notification
 The server checks for new audit/notification rows every 2 s (`EVENTS_POLL_SECONDS`), sends `: keepalive` every
 15 s (`EVENTS_KEEPALIVE_SECONDS`) and closes the stream when the session is revoked or expires. `401` without a
 token, `400` without `X-Organization-Id`.
+
+### SLA report (WEB-04, dispatchers and administrators)
+```http
+GET /api/v1/reports/sla?days=30     (1-365)
+200 {"period_days": 30, "total": 12, "on_time": 10, "late": 2, "avg_resolution_minutes": 310, "escalated": 1,
+     "by_priority": [{"priority": "HIGH", "total": 4, "late": 1}]}
+```
+Counts requests completed in the period and judges each by its SLA budget in working time (late = over budget at
+the moment of completion). `avg_resolution_minutes` is working minutes and `null` when nothing was completed;
+`escalated` counts escalations raised in the period. Customers and technicians get `403`.

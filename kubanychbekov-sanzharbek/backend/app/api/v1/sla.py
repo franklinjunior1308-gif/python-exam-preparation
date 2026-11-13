@@ -1,7 +1,9 @@
-from fastapi import APIRouter
+from typing import Annotated
+
+from fastapi import APIRouter, Query
 
 from app.api.deps import DbDep, OrgDep
-from app.schemas.sla import HolidayIn, OverdueOut, WorkingHoursIn, WorkingHoursOut
+from app.schemas.sla import HolidayIn, OverdueOut, SlaReportOut, WorkingHoursIn, WorkingHoursOut
 from app.services import sla as service
 
 router = APIRouter(tags=["sla"])
@@ -11,6 +13,14 @@ router = APIRouter(tags=["sla"])
 def overdue(ctx: OrgDep, db: DbDep) -> list[OverdueOut]:
     """Open requests past their SLA, most overdue first."""
     return service.overdue_queue(db, ctx)
+
+
+@router.get("/reports/sla", response_model=SlaReportOut)
+def sla_report(
+    ctx: OrgDep, db: DbDep, days: Annotated[int, Query(ge=1, le=365)] = 30
+) -> SlaReportOut:
+    """On-time vs late completions, average resolution time and escalations for a period."""
+    return service.report(db, ctx, days)
 
 
 @router.get("/settings/working-hours", response_model=WorkingHoursOut)

@@ -1,10 +1,10 @@
 """SLA for requests: working-time clock, pauses, overdue queue, one-time escalation."""
 
 from dataclasses import dataclass
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
@@ -35,7 +35,9 @@ from app.schemas.sla import (
     HolidayOut,
     IntervalIn,
     OverdueOut,
+    PriorityRow,
     SlaOut,
+    SlaReportOut,
     WorkingHoursIn,
     WorkingHoursOut,
 )
@@ -382,3 +384,71 @@ def remove_holiday(db: Session, ctx: OrgContext, holiday_id: int) -> WorkingHour
     )
     db.commit()
     return get_hours(db, ctx)
+
+
+def report(db: Session, ctx: OrgContext, days: int) -> SlaReportOut:
+    """SLA outcome of requests completed in the last `days` days (WEB-04)."""
+    if ctx.role not in {Role.DISPATCHER, Role.ADMIN}:
+        raise AppError(403, "forbidden", "Only dispatchers and administrators see the SLA report")
+    now = datetime.now(UTC)
+    since = now - timedelta(days=days)
+    completed = {
+        rid: moment
+        for rid, moment in _completed_at(
+            db,
+            list(
+                db.scalars(
+                    select(ServiceRequest.id).where(
+                        ServiceRequest.organization_id == ctx.org_id,
+                        ServiceRequest.status.in_(FINISHED),
+                    )
+                )
+            ),
+        ).items()
+        if moment >= since
+    }
+    calendar = load_calendar(db, ctx.org_id, ctx.organization.timezone)
+    requests = (
+        list(
+            db.scalars(
+                select(ServiceRequest).where(
+                    ServiceRequest.organization_id == ctx.org_id,
+                    ServiceRequest.id.in_(list(completed)),
+                )
+            )
+        )
+        if completed
+        else []
+    )
+    pauses = _pauses(db, [r.id for r in requests], now)
+    per_priority: dict[str, list[int]] = {}
+    used_total = late_total = 0
+    for req in requests:
+        info = compute(req, calendar, pauses[req.id], completed[req.id], now)
+        late = info.state == "OVERDUE"
+        used_total += info.used_minutes
+        late_total += int(late)
+        row = per_priority.setdefault(req.priority.value, [0, 0])
+        row[0] += 1
+        row[1] += int(late)
+    escalated = (
+        db.scalar(
+            select(func.count())
+            .select_from(SlaEscalation)
+            .where(SlaEscalation.organization_id == ctx.org_id, SlaEscalation.created_at >= since)
+        )
+        or 0
+    )
+    total = len(requests)
+    return SlaReportOut(
+        period_days=days,
+        total=total,
+        on_time=total - late_total,
+        late=late_total,
+        avg_resolution_minutes=round(used_total / total) if total else None,
+        escalated=escalated,
+        by_priority=[
+            PriorityRow(priority=name, total=row[0], late=row[1])
+            for name, row in sorted(per_priority.items())
+        ],
+    )

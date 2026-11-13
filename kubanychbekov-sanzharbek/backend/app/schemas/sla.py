@@ -24,6 +24,24 @@ class OverdueOut(BaseModel):
     escalated: bool
 
 
+class PriorityRow(BaseModel):
+    priority: str
+    total: int
+    late: int
+
+
+class SlaReportOut(BaseModel):
+    """Requests completed in the period, judged by their SLA budget in working time (WEB-04)."""
+
+    period_days: int
+    total: int
+    on_time: int
+    late: int
+    avg_resolution_minutes: int | None  # working minutes, None when nothing was completed
+    escalated: int  # escalations raised in the period
+    by_priority: list[PriorityRow]
+
+
 class IntervalIn(BaseModel):
     weekday: int = Field(ge=0, le=6)
     start_time: time
