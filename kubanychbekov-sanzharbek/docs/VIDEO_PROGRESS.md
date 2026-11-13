@@ -72,3 +72,6 @@ so DO NOT run `s1_ru.ts` again (it would create another request); continue with 
 - Raw take 2 in `C:\dev\demo\raw\`: `v2_s1` (customer creates #96), `v2_s2` (dispatcher + Smart Assign -> Erlan), `v2_phone.mkv` + `phone_log.json` (labels after `v2_phone_start`; video time ~ log time + 4 s), `v2_s3` (customer closes, rating form not yet accepted), `v2_s3b` (customer rates 5 stars + comment, history). Use these; the take-1 files are obsolete.
 - Fix learned: Chrome needs `Emulation.setFocusEmulationEnabled` + `Page.bringToFront` (now in `lib/cdp.ts` attach), otherwise mouse events hang when the window is not focused. Star rating: `label.rating-star:nth-of-type(5)`.
 - Remaining: tests terminal clip (`C:\dev\demo\run_tests.bat`, window title FixFlowTests, ffmpeg gdigrab), cards, edit, encode, report.
+
+## FINAL 2026-11-14: video built
+`C:\Users\ASUS ROG STRIX\Videos\FixFlow-demo\FixFlow_demo_ru_no_voice.mp4` (5:09, 1920x1080). Built by `C:\dev\demo\build.py` from `edit\*.mp4` + `raw\v2_phone.mkv` + `raw\v2_tests.mp4`. Scenes, narration and the real/sped-up/blurred statement: `docs/VIDEO_NARRATION_RU.md`. Remaining for the author: record the voice, upload, link in README, submit 2026-11-15 after 16:00.
