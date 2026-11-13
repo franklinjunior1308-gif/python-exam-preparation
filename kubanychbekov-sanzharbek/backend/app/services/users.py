@@ -112,9 +112,7 @@ def create_user(db: Session, ctx: OrgContext, data: UserCreate) -> UserOut:
     return _out(user, membership, _technician_ids(db, ctx.org_id))
 
 
-def _load_member(
-    db: Session, ctx: OrgContext, user_id: int
-) -> tuple[User, OrganizationMembership]:
+def _load_member(db: Session, ctx: OrgContext, user_id: int) -> tuple[User, OrganizationMembership]:
     row = db.execute(
         select(User, OrganizationMembership)
         .join(OrganizationMembership, OrganizationMembership.user_id == User.id)

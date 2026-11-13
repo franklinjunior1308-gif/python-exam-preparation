@@ -18,11 +18,13 @@ pytestmark = pytest.mark.integration
 
 def viewer_of(client, world, org_key, user_key, role) -> events.Viewer:
     token = client.headers["Authorization"].removeprefix("Bearer ")
+    session_id = decode_access_token(token)
+    assert session_id is not None
     return events.Viewer(
         user_id=world[user_key],
         org_id=world[org_key],
         role=role,
-        session_id=decode_access_token(token),
+        session_id=session_id,
     )
 
 

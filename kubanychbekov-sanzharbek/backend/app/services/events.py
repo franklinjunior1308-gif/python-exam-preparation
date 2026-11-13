@@ -7,7 +7,7 @@ Changes are found by polling the audit, assignment and notification tables by in
 
 import asyncio
 import json
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
@@ -27,6 +27,8 @@ from app.models import (
 )
 
 MAX_EVENTS_PER_POLL = 50
+
+Hint = dict[str, str | int | None]
 
 
 @dataclass(frozen=True)
@@ -89,7 +91,7 @@ def session_alive(db: Session, viewer: Viewer) -> bool:
     return row is not None and row.revoked_at is None and row.expires_at > datetime.now(UTC)
 
 
-def poll(db: Session, viewer: Viewer, cursor: _Cursor) -> list[dict[str, object]]:
+def poll(db: Session, viewer: Viewer, cursor: _Cursor) -> list[Hint]:
     """New change hints since the cursor; advances the cursor."""
     hints: dict[tuple[str, int | None], None] = {}
 
@@ -127,9 +129,7 @@ def poll(db: Session, viewer: Viewer, cursor: _Cursor) -> list[dict[str, object]
     return [{"scope": s, "request_id": r, "at": at} for s, r in list(hints)][:MAX_EVENTS_PER_POLL]
 
 
-def _sync_step(
-    viewer: Viewer, cursor: _Cursor | None
-) -> tuple[_Cursor, list[dict[str, object]], bool]:
+def _sync_step(viewer: Viewer, cursor: _Cursor | None) -> tuple[_Cursor, list[Hint], bool]:
     with get_sessionmaker()() as db:
         if not session_alive(db, viewer):
             return cursor or _Cursor(0, 0), [], False
@@ -138,13 +138,13 @@ def _sync_step(
         return cursor, poll(db, viewer, cursor), True
 
 
-def format_event(payload: dict[str, object]) -> str:
+def format_event(payload: Hint) -> str:
     return f"event: changed\ndata: {json.dumps(payload)}\n\n"
 
 
 async def stream(
     viewer: Viewer, *, poll_seconds: float, keepalive_seconds: float
-) -> AsyncIterator[str]:
+) -> AsyncGenerator[str]:
     """Yields SSE text. Ends when the session is revoked or expires; cancelled on disconnect."""
     cursor, _, alive = await to_thread.run_sync(_sync_step, viewer, None)
     yield "retry: 3000\n: connected\n\n"
