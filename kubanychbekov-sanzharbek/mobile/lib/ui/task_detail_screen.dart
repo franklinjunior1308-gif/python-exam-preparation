@@ -25,6 +25,7 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
   Future<List<RemoteNote>>? _notes;
   Future<List<RemoteAttachment>>? _photos;
   int? _loadedFor;
+  String? _mark;
   int? _estimate;
 
   void _reloadRemote(Task task) {
@@ -263,7 +264,15 @@ class _TaskDetailScreenState extends State<TaskDetailScreen> {
       );
     }
     final task = matches.first;
-    if (_loadedFor != task.requestId && state.online) _reloadRemote(task);
+    // Reload notes and photos when the request changes and after every sync or queue change, so a
+    // note that was just delivered shows up without leaving the screen.
+    final mark =
+        '${state.lastSync?.millisecondsSinceEpoch}-'
+        '${state.queueFor(task.requestId).length}';
+    if (state.online && (_loadedFor != task.requestId || _mark != mark)) {
+      _mark = mark;
+      _reloadRemote(task);
+    }
 
     final tz = task.timezone;
     final online = state.online;

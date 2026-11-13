@@ -515,6 +515,65 @@ void main() {
     });
   });
 
+  group('task screen refresh', () {
+    testWidgets(
+      'a note delivered to the server appears without leaving the screen',
+      (tester) async {
+        tallScreen(tester);
+        final notes = <Map<String, Object?>>[];
+        final state = (await tester.runAsync(
+          () => buildState((r) async {
+            final path = r.url.path;
+            if (path.endsWith('/my/tasks')) {
+              return jsonResponse(200, [
+                sampleTask(
+                  status: 'IN_PROGRESS',
+                  actions: ['BLOCKED'],
+                ).toJson(),
+              ]);
+            }
+            if (path.endsWith('/notes')) return jsonResponse(200, notes);
+            return jsonResponse(200, []);
+          }),
+        ))!;
+        await pumpApp(tester, state);
+        await tester.tap(find.text('Ventilation fan does not work'));
+        await tester.pumpAndSettle();
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 100)),
+        );
+        await tester.pump();
+        expect(find.text('No notes yet.'), findsOneWidget);
+
+        // the server now has a note (delivered from the offline queue); a sync happens
+        notes.add({
+          'id': 1,
+          'request_id': 28,
+          'author_user_id': 3,
+          'author_name': 'Azamat',
+          'visibility': 'public',
+          'kind': 'note',
+          'body': 'Pressure is low',
+          'client_command_id': 'cmd-note-0001',
+          'created_at': '2026-11-13T05:00:00Z',
+        });
+        await tester.runAsync(() => state.refresh());
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 100)),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(find.text('Pressure is low'), findsOneWidget);
+        expect(find.text('No notes yet.'), findsNothing);
+
+        await tester.pump(const Duration(seconds: 1));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 50)),
+        );
+      },
+    );
+  });
+
   group('login screen layout', () {
     for (final width in [320.0, 360.0, 390.0]) {
       testWidgets(
