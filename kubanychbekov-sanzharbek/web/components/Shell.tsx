@@ -6,8 +6,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { createContext, type FormEvent, type ReactNode, useContext, useState } from "react";
 import { api } from "@/lib/api-client";
 import type { Me, Membership, Role } from "@/lib/types";
-import { CalendarIcon, ClipboardIcon, CogIcon, ClockIcon, BoltIcon, HelmetIcon, HomeIcon, LayersIcon, ListIcon, LogoMark, LogoutIcon, PlusIcon, SearchIcon, WrenchIcon } from "./icons";
+import { CalendarIcon, ClipboardIcon, CogIcon, ClockIcon, BoltIcon, HelmetIcon, HomeIcon, LayersIcon, ListIcon, LogoMark, LogoutIcon, PlusIcon, SearchIcon, UsersIcon, WrenchIcon } from "./icons";
 import { LangSwitch } from "./LangSwitch";
+import { useLiveUpdates } from "./useLiveUpdates";
 import { useI18n } from "./Providers";
 
 type Session = { me: Me; membership: Membership; orgId: number; role: Role };
@@ -35,6 +36,7 @@ export function Shell({
   const [search, setSearch] = useState("");
   const [switchError, setSwitchError] = useState<string | null>(null);
   const role = membership.role;
+  const live = useLiveUpdates(membership.organization_id);
 
   const nav = [
     { href: "/app", label: t("nav.dashboard"), icon: <HomeIcon />, show: true },
@@ -70,6 +72,13 @@ export function Shell({
       icon: <HelmetIcon />,
       show: role === "dispatcher" || role === "admin",
     },
+    {
+      href: "/app/categories",
+      label: t("nav.categories"),
+      icon: <ClipboardIcon />,
+      show: role === "dispatcher" || role === "admin",
+    },
+    { href: "/app/users", label: t("nav.users"), icon: <UsersIcon />, show: role === "admin" },
     { href: "/app/settings", label: t("nav.settings"), icon: <CogIcon />, show: role === "admin" },
     { href: "/app/audit", label: t("nav.audit"), icon: <ClipboardIcon />, show: role === "admin" },
     { href: "/app/notifications", label: t("nav.notifications"), icon: <BoltIcon />, show: true },
@@ -189,6 +198,9 @@ export function Shell({
                 </button>
               </form>
             )}
+            <span className={`live live-${live}`} role="status" title={t(`live.${live}`)}>
+              {t(`live.${live}`)}
+            </span>
             <LangSwitch />
           </div>
           {children}

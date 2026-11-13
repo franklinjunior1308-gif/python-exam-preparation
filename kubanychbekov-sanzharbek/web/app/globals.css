@@ -997,3 +997,8 @@ dialog::backdrop {
 .rating-star input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
 .rating-star:focus-within { outline: 2px solid #5eead4; border-radius: 6px; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.live { font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; color: var(--muted, #94a3b8); }
+.live::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; }
+.live-live::before { background: #34d399; }
+.live-reconnecting::before { background: #fbbf24; }

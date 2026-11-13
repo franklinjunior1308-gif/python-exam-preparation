@@ -126,6 +126,7 @@ export type Category = {
   description: string;
   default_duration_min: number;
   is_active: boolean;
+  required_skills?: string[];
 };
 export type Property = { id: number; name: string; address: string; is_active: boolean };
 export type Asset = {
@@ -299,3 +300,21 @@ export type AuditEvent = {
   after: Record<string, unknown> | null;
 };
 export type AuditPage = { items: AuditEvent[]; total: number; limit: number; offset: number };
+
+export type AppUser = {
+  id: number;
+  email: string;
+  full_name: string;
+  role: Role;
+  is_active: boolean;
+  technician_id: number | null;
+};
+
+export type SlaReportData = {
+  total: number;
+  on_time: number;
+  late: number;
+  avg_resolution_minutes: number | null;
+  escalated: number;
+  by_priority: { priority: Priority; total: number; late: number }[];
+};

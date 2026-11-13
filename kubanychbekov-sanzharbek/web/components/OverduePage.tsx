@@ -8,6 +8,7 @@ import type { Overdue } from "@/lib/types";
 import { PriorityBadge, StatusBadge } from "./Badges";
 import { useI18n } from "./Providers";
 import { useSession } from "./Shell";
+import { SlaReport } from "./SlaReport";
 
 /** Queue of open requests past their SLA (SLA-06), most overdue first. */
 export function OverduePage() {
@@ -101,6 +102,8 @@ export function OverduePage() {
           </div>
         )}
       </section>
+
+      <SlaReport />
     </>
   );
 }
