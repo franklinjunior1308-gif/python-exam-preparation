@@ -23,7 +23,7 @@ before then** (see "Submission" at the end).
 | Isolation | all queries scoped by org; 404 for other orgs/customers; composite FKs `(organization_id,id)` | SEC-01, DATA-02,05 |
 | Requests | create (title 5-120, description 20-3000: server + DB CHECK), list with server pagination/search/filters/sort/SLA filter, detail with allowed actions, history, priority/category change with reason | REQ-01 (no photos in web form yet),02,03,04,05,06 |
 | Lifecycle | full state machine, compare-and-set transitions, atomic history + audit | LIFE-01..04,06..09 |
-| Completion | final note >= 20 chars + >= 1 photo, idempotent | LIFE-05 (materials check missing) |
+| Completion | final note >= 20 chars + >= 1 photo, idempotent | LIFE-05 (materials = atomic write-off, no explicit confirmation; see PRODUCT_DECISIONS) |
 | Scheduling | skills, weekly availability, absences, min 30 min, no past, half-open overlap, **PostgreSQL exclusion constraint**, 409 for the loser, candidates with reasons, assign/reschedule/unassign/decline, day+week view | SCHED-01..07, DATA-03 |
 | Original feature | **Smart Assign** (earliest free slot per qualified technician), documented in `PRODUCT_DECISIONS.md` | WEB-09, DOC-03 |
 | Estimates | versions, immutable after submit, customer approve/reject (reason), parallel decisions -> one wins, work-start gate until approved, whole-tyiyn half-up rounding | EST-01..06, DATA-04 |
@@ -161,13 +161,14 @@ to `~/.gradle/wrapper/dists/gradle-9.5.0-all/aca6g93cdtcf0oapcfka748qh/`, `tar -
 `gradle-9.5.0-all.zip.ok`.
 
 ## CURRENT NEXT STEP (resume here)
-1. TWO SESSIONS WORK IN PARALLEL (fork 1 and fork 2, same repo): fork 2 owns `web/` and the extra seed; fork 1 owns
-   `mobile/`, `docs/VERIFICATION.md` and the backend gaps (feedback, audit feed, login rate limit, request-ID logs,
-   live updates). Never `git add -A`; commit only your own paths.
-2. DONE 2026-11-13 (fork 1): Android materials screen (`mobile/lib/ui/materials_screen.dart`, online-only write-off with
-   stable command id, insufficient-stock error mapped en/ru) + approved estimate total on the task details; 28 Flutter
-   tests pass, `flutter analyze` clean; APK rebuilt (app-debug.apk, 190 264 790 bytes, SHA-256 b0fecaab4daefad5d2c02d379b4431d26f3b9bff9bc5781a85cc8d70cce78909). DONE: customer feedback + audit feed endpoints (migration 28f311d4ad8e, 233 backend tests). DONE: technician skills/availability admin API (240 backend tests). DONE: login lockout + request-ID JSON logs (245 backend tests). Fork 1 next: backend gaps (live updates API-06, LIFE-05 materials check, user/role API), then `scripts/smoke.sh`, `docs/AI_USAGE.md`.
-3. After each module: `ruff`/`ty`, tests in Docker, commit locally, keep this file current.
+Fork 1 is the single main session (the user closed the others). State on 2026-11-13: all mandatory features are
+implemented and committed (HEAD is clean). Backend 269 tests + ruff + ruff format + ty pass in Docker; web lint,
+typecheck, 23 tests pass; Flutter format, analyze, 28 tests pass; APK rebuilt after the materials screen.
+Backend gaps done this round: feedback, audit feed, technician skills/availability, login lockout, request IDs +
+JSON logs, staff/roles, categories admin, SSE live updates (`GET /events`), SLA report (`GET /reports/sla`).
+Left: (1) final `scripts/verify-all.sh` (Docker mode) and `scripts/smoke.sh` on a clean start; (2) install the APK on
+a phone and record the 5-minute video (`docs/VIDEO_SCRIPT.md`); (3) rebuild the APK if mobile changes; (4) submission
+on Sunday 2026-11-15 after 16:00 (below). Never `docker compose down -v`; never push before then.
 
 ## Submission (do not do early)
 Only on Sunday 2026-11-15 after 16:00: accept the invitation, create branch `submission/kubanychbekov-sanzharbek`,

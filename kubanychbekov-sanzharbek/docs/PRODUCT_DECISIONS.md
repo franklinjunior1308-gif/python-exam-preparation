@@ -67,3 +67,9 @@ triaged).
   scripts cannot read; state-changing calls need a custom header (CSRF guard).
 - **Time is stored in UTC and shown in the organization's timezone**; the web converts typed
   wall-clock times with the organization's zone, never the browser's.
+- **"Materials correctly accounted" (LIFE-05) is read as: every material is booked through the atomic write-off.**
+  A technician can write material off only on their own request in IN_PROGRESS (INV-03); stock and the usage record
+  change in one transaction, a repeated command changes nothing (INV-05) and the price is a snapshot. Completion
+  therefore cannot leave half-booked materials. We deliberately do not force a "no materials used" confirmation,
+  because many jobs use none. If the examiners expect an explicit confirmation step, it would be one boolean on the
+  completion command; this is listed in `KNOWN_LIMITATIONS.md`.

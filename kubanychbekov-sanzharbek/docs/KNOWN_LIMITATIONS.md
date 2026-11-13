@@ -46,8 +46,8 @@ Status of work in progress. Nothing is marked done unless it works end to end.
   a local volume without antivirus scanning, mitigation: content-type and image validation, authorized download only.
 - **Backend**: Login lockout (5 failures per e-mail in 15 minutes) is per e-mail, not per address, so someone who knows an
   e-mail can pause that account for up to 15 minutes; there is no CAPTCHA or per-IP limit.
-- **Android**: completion does not yet verify materials (LIFE-05 "materials correctly
-  accounted").
+- **LIFE-05 materials**: completion does not ask the technician to confirm "no materials used"; materials are
+  accounted by the atomic write-off (see `PRODUCT_DECISIONS.md`).
 - **Verification**: no browser/E2E tests for the web; no instrumented tests for Android.
 - Customers see every active property of their organization (there is no customer-to-property link).
 - The Android app keeps its session token in the app's private storage (sembast), not in the
