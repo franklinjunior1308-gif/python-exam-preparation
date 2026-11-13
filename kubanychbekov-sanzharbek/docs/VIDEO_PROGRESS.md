@@ -67,3 +67,8 @@ so DO NOT run `s1_ru.ts` again (it would create another request); continue with 
   (scrcpy was killed -> "moov atom not found"; file kept). #95 is now COMPLETED, so the whole chain is redone on a NEW request (#96+), with the phone recorded to **MKV** and scrcpy stopped gracefully.
 - Take-1 files stay in `raw\` (s1_customer_ru, s2_dispatcher, phone.mp4, phone_log.json). Take-2 files use the `v2_` prefix. Phone helpers: `C:\dev\demo\ph.py`, `kbru.py` (Russian Gboard key coordinates for 720x1600, rows y=1100/1208/1316, space 395,1425).
 - Lesson: wait for the text field to be focused before typing; to clear a field use ctrl+a then DEL.
+
+## UPDATE 2026-11-13 ~23:55 - take 2 recorded (request #96 is CLOSED, rated 5)
+- Raw take 2 in `C:\dev\demo\raw\`: `v2_s1` (customer creates #96), `v2_s2` (dispatcher + Smart Assign -> Erlan), `v2_phone.mkv` + `phone_log.json` (labels after `v2_phone_start`; video time ~ log time + 4 s), `v2_s3` (customer closes, rating form not yet accepted), `v2_s3b` (customer rates 5 stars + comment, history). Use these; the take-1 files are obsolete.
+- Fix learned: Chrome needs `Emulation.setFocusEmulationEnabled` + `Page.bringToFront` (now in `lib/cdp.ts` attach), otherwise mouse events hang when the window is not focused. Star rating: `label.rating-star:nth-of-type(5)`.
+- Remaining: tests terminal clip (`C:\dev\demo\run_tests.bat`, window title FixFlowTests, ffmpeg gdigrab), cards, edit, encode, report.
