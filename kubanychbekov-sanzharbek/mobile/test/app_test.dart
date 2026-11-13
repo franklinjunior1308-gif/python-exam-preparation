@@ -359,6 +359,30 @@ void main() {
     });
   });
 
+  group('login screen layout', () {
+    for (final width in [320.0, 360.0, 390.0]) {
+      testWidgets(
+        'header does not overflow on a ${width.toInt()} px phone in Russian',
+        (tester) async {
+          tester.view.physicalSize = Size(width, 800);
+          tester.view.devicePixelRatio = 1;
+          addTearDown(tester.view.reset);
+          final state = (await tester.runAsync(
+            () =>
+                buildState((r) async => jsonResponse(200, []), signedIn: false),
+          ))!;
+          await tester.runAsync(() => state.setLang('ru'));
+          await pumpApp(tester, state);
+          expect(find.text('FixFlow'), findsOneWidget);
+          expect(
+            tester.takeException(),
+            isNull,
+          ); // an overflow would be reported here
+        },
+      );
+    }
+  });
+
   group('offline behaviour', () {
     testWidgets(
       'cached tasks are shown without a connection, with an offline banner',

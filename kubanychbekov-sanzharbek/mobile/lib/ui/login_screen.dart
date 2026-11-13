@@ -83,16 +83,29 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       const Icon(Icons.bolt, color: Fx.primary, size: 40),
                       const SizedBox(width: 8),
-                      const Text(
-                        'FixFlow',
-                        style: TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.w800,
+                      // the title shrinks instead of pushing the language switch off the screen
+                      const Expanded(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'FixFlow',
+                            style: TextStyle(
+                              fontSize: 30,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
                         ),
                       ),
-                      const Spacer(),
+                      const SizedBox(width: 8),
                       SegmentedButton<String>(
                         showSelectedIcon: false,
+                        style: const ButtonStyle(
+                          visualDensity: VisualDensity.compact,
+                          padding: WidgetStatePropertyAll(
+                            EdgeInsets.symmetric(horizontal: 10),
+                          ),
+                        ),
                         segments: const [
                           ButtonSegment(value: 'en', label: Text('EN')),
                           ButtonSegment(value: 'ru', label: Text('RU')),
