@@ -61,3 +61,9 @@ Not recorded yet: phone stages (login, task + SLA, accept, start, note, photo, o
 ## 7. How to resume editing without losing anything
 All raw frames and logs stay in `C:\dev\demo\raw\` (do not delete). To continue: read this file, re-check the environment (Docker stack, `adb devices`, `curl localhost:3000/login`), then do step 1 of section 6. The request #95 already exists and is SCHEDULED to Erlan,
 so DO NOT run `s1_ru.ts` again (it would create another request); continue with the phone. If a scene must be re-recorded, record it as a new clip next to the old one and keep both.
+
+## UPDATE 2026-11-13 ~23:20 - take 2 (new request)
+- Phone take 1 on #95 went through the whole flow (accept, start, RU note via Gboard coordinate taps, photo, offline note synced exactly once, COMPLETED) but `raw\phone.mp4` is unusable
+  (scrcpy was killed -> "moov atom not found"; file kept). #95 is now COMPLETED, so the whole chain is redone on a NEW request (#96+), with the phone recorded to **MKV** and scrcpy stopped gracefully.
+- Take-1 files stay in `raw\` (s1_customer_ru, s2_dispatcher, phone.mp4, phone_log.json). Take-2 files use the `v2_` prefix. Phone helpers: `C:\dev\demo\ph.py`, `kbru.py` (Russian Gboard key coordinates for 720x1600, rows y=1100/1208/1316, space 395,1425).
+- Lesson: wait for the text field to be focused before typing; to clear a field use ctrl+a then DEL.
