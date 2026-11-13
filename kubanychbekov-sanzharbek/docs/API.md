@@ -131,3 +131,18 @@ replaced) and error bodies carry `error.request_id`. The server writes one JSON 
 (`request_id`, `method`, `path`, `status`, `duration_ms`); bodies, passwords and tokens are never logged.
 Five failed sign-ins for one e-mail within 15 minutes answer `429 too_many_attempts` (also for the correct password)
 until the oldest failure leaves the window. Limits: `LOGIN_MAX_FAILURES`, `LOGIN_WINDOW_MINUTES`.
+
+### Staff and roles (ORG-04, AUTH-05, administrators only)
+```http
+GET  /api/v1/users                     -> [{"id", "email", "full_name", "role", "is_active", "technician_id"|null}]
+POST /api/v1/users
+{"email": "a@b.kg", "full_name": "Aida K.", "role": "technician", "password": "Start-Pass-12"}   -> 201 <user>
+PUT  /api/v1/users/{id}
+{"role": "dispatcher", "is_active": false}   (both optional)                                    -> 200 <user>
+```
+`is_active` is the membership in this organization. Passwords need 10+ characters with a letter and a digit (`422`).
+An e-mail that already has an account in another organization only gains a membership (its password is unchanged).
+Errors: `409 already_member`, `409 last_admin` (the organization must keep one active administrator),
+`409 technician_has_active_assignments`, `404 user_not_found` (also for other organizations), `403 forbidden`.
+Deactivating a member revokes all of their sessions at once. Audited as `user.created`, `user.role_changed`,
+`user.deactivated`, `user.activated`.

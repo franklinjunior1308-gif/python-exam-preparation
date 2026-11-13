@@ -12,6 +12,7 @@ from app.api.v1 import (
     requests,
     scheduling,
     sla,
+    users,
     work,
 )
 
@@ -28,3 +29,4 @@ api_router.include_router(inventory.router)
 api_router.include_router(sla.router)
 api_router.include_router(maintenance.router)
 api_router.include_router(feedback.router)
+api_router.include_router(users.router)

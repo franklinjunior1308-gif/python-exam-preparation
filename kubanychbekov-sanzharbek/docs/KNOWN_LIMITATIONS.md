@@ -45,7 +45,7 @@ Status of work in progress. Nothing is marked done unless it works end to end.
   not the keystore, mitigation: sandboxed storage, token revocable server-side; (3) plain HTTP is allowed for local
   development, mitigation: used only on a local network, production would require HTTPS; (4) uploaded photos live on
   a local volume without antivirus scanning, mitigation: content-type and image validation, authorized download only.
-- **Backend**: user/role management API (ORG-04, AUTH-05), live updates over WebSocket/SSE (API-06).
+- **Backend**: live updates over WebSocket/SSE (API-06).
   Login lockout (5 failures per e-mail in 15 minutes) is per e-mail, not per address, so someone who knows an
   e-mail can pause that account for up to 15 minutes; there is no CAPTCHA or per-IP limit.
 - **Android**: live updates; completion does not yet verify materials (LIFE-05 "materials correctly
