@@ -12,6 +12,7 @@ import {
   type Property,
   type RequestPage,
   STATUSES,
+  type Technician,
 } from "@/lib/types";
 import { PriorityBadge, StatusBadge } from "./Badges";
 import { SlaBadge } from "./SlaBadge";
@@ -36,6 +37,11 @@ export function RequestsView() {
   const categoryId = params.get("category") ?? "";
   const q = params.get("q") ?? "";
   const sla = params.get("sla") ?? "";
+  const technicianId = params.get("tech") ?? "";
+  const createdFrom = params.get("from") ?? "";
+  const createdTo = params.get("to") ?? "";
+  const staff = role === "dispatcher" || role === "admin";
+  const rangeInvalid = createdFrom !== "" && createdTo !== "" && createdFrom > createdTo;
   const sortBy = params.get("sort") ?? "created_at";
   const descending = params.get("dir") !== "asc";
 
@@ -69,7 +75,8 @@ export function RequestsView() {
   }
 
   const list = useQuery({
-    queryKey: ["requests", orgId, { page, pageSize, status, priority, categoryId, sla, q, sortBy, descending }],
+    queryKey: ["requests", orgId, { page, pageSize, status, priority, categoryId, sla, q, sortBy, descending, technicianId, createdFrom, createdTo }],
+    enabled: !rangeInvalid,
     queryFn: () =>
       api<RequestPage>("requests", {
         query: {
@@ -79,6 +86,9 @@ export function RequestsView() {
           priority,
           category_id: categoryId,
           sla,
+          technician_id: technicianId,
+          created_from: createdFrom,
+          created_to: createdTo,
           q,
           sort_by: sortBy,
           descending,
@@ -93,11 +103,16 @@ export function RequestsView() {
     queryKey: ["properties", orgId],
     queryFn: () => api<Property[]>("properties"),
   });
+  const technicians = useQuery({
+    queryKey: ["technicians", orgId],
+    queryFn: () => api<Technician[]>("technicians"),
+    enabled: staff,
+  });
 
   const categoryName = new Map(categories.data?.map((c) => [c.id, c.name]));
   const propertyName = new Map(properties.data?.map((p) => [p.id, p.name]));
   const pages = list.data ? Math.max(1, Math.ceil(list.data.total / list.data.page_size)) : 1;
-  const filtered = Boolean(status || priority || categoryId || sla || q);
+  const filtered = Boolean(status || priority || categoryId || sla || q || technicianId || createdFrom || createdTo);
 
   function sortState(column: string): "ascending" | "descending" | undefined {
     if (sortBy !== column) return undefined;
@@ -188,6 +203,27 @@ export function RequestsView() {
               ))}
             </select>
           </div>
+          {staff && (
+            <div className="field">
+              <label htmlFor="f-tech">{t("req.technician")}</label>
+              <select id="f-tech" className="select" value={technicianId} onChange={(e) => update({ tech: e.target.value })}>
+                <option value="">{t("common.all")}</option>
+                {technicians.data?.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.full_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          <div className="field">
+            <label htmlFor="f-from">{t("dash.from")}</label>
+            <input id="f-from" className="input" type="date" value={createdFrom} onChange={(e) => update({ from: e.target.value })} />
+          </div>
+          <div className="field">
+            <label htmlFor="f-to">{t("dash.to")}</label>
+            <input id="f-to" className="input" type="date" value={createdTo} onChange={(e) => update({ to: e.target.value })} />
+          </div>
           {filtered && (
             <button type="button" className="btn btn-outline" onClick={clearFilters}>
               {t("req.clear")}
@@ -195,6 +231,11 @@ export function RequestsView() {
           )}
         </form>
 
+        {rangeInvalid && (
+          <div className="alert alert-error" role="alert">
+            {t("req.rangeInvalid")}
+          </div>
+        )}
         {list.isError && (
           <div className="alert alert-error" role="alert">
             {tError(list.error)}{" "}
@@ -220,7 +261,7 @@ export function RequestsView() {
                   <th>{t("req.col.category")}</th>
                   <th aria-sort={sortState("priority")}>{sortHeader("priority", t("req.col.priority"))}</th>
                   <th>{t("req.col.status")}</th>
-                  <th>{t("req.col.sla")}</th>
+                  <th aria-sort={sortState("due_at")}>{sortHeader("due_at", t("req.col.sla"))}</th>
                   <th aria-sort={sortState("created_at")}>{sortHeader("created_at", t("req.col.created"))}</th>
                 </tr>
               </thead>

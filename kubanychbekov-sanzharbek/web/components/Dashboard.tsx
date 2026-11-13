@@ -2,10 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { api } from "@/lib/api-client";
 import { CATEGORY_COLORS, formatDateTime, formatDay, STATUS_COLORS } from "@/lib/format";
-import { type RequestPage, STATUSES, type Summary } from "@/lib/types";
+import { formatKgs, formatDuration } from "@/lib/money";
+import { type Category, type RequestPage, STATUSES, type Summary, type Technician } from "@/lib/types";
 import { PriorityBadge, StatusBadge } from "./Badges";
 import { Donut, LineChart } from "./Charts";
 import { CheckCircleIcon, ClipboardIcon, ClockIcon, PlusIcon, WrenchIcon } from "./icons";
@@ -39,11 +40,30 @@ export function Dashboard() {
   const { me, membership, orgId, role } = useSession();
   const enabled = role !== "technician";
 
+  const staff = role === "dispatcher" || role === "admin";
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [technicianId, setTechnicianId] = useState("");
+  const periodOk = (!dateFrom && !dateTo) || (dateFrom !== "" && dateTo !== "" && dateFrom <= dateTo);
+
   const summary = useQuery({
-    queryKey: ["summary", orgId],
-    queryFn: () => api<Summary>("reports/summary", { query: { days: 14 } }),
-    enabled,
+    queryKey: ["summary", orgId, dateFrom, dateTo, categoryId, technicianId],
+    queryFn: () =>
+      api<Summary>("reports/summary", {
+        query: {
+          days: 14,
+          date_from: dateFrom || undefined,
+          date_to: dateTo || undefined,
+          category_id: categoryId || undefined,
+          technician_id: technicianId || undefined,
+        },
+      }),
+    enabled: enabled && periodOk,
+    placeholderData: (previous) => previous,
   });
+  const categories = useQuery({ queryKey: ["categories", orgId], queryFn: () => api<Category[]>("categories"), enabled: enabled && staff });
+  const technicians = useQuery({ queryKey: ["technicians", orgId], queryFn: () => api<Technician[]>("technicians"), enabled: enabled && staff });
   const recent = useQuery({
     queryKey: ["requests", orgId, "recent"],
     queryFn: () => api<RequestPage>("requests", { query: { page: 1, page_size: 6 } }),
@@ -82,6 +102,66 @@ export function Dashboard() {
             {t("common.retry")}
           </button>
         </div>
+      )}
+
+      {enabled && (
+        <form className="card filters" aria-label={t("dash.filters")} onSubmit={(e) => e.preventDefault()} style={{ marginBottom: 14 }}>
+          <div className="form-row">
+            <div className="field">
+              <label htmlFor="f-from">{t("dash.from")}</label>
+              <input id="f-from" className="input" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
+            </div>
+            <div className="field">
+              <label htmlFor="f-to">{t("dash.to")}</label>
+              <input id="f-to" className="input" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+            </div>
+            {staff && (
+              <>
+                <div className="field">
+                  <label htmlFor="f-cat">{t("req.col.category")}</label>
+                  <select id="f-cat" className="select" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
+                    <option value="">{t("common.all")}</option>
+                    {(categories.data ?? []).map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="field">
+                  <label htmlFor="f-tech">{t("dash.technician")}</label>
+                  <select id="f-tech" className="select" value={technicianId} onChange={(e) => setTechnicianId(e.target.value)}>
+                    <option value="">{t("common.all")}</option>
+                    {(technicians.data ?? []).map((x) => (
+                      <option key={x.id} value={x.id}>
+                        {x.full_name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
+          </div>
+          {!periodOk && (
+            <div className="alert alert-error" role="alert">
+              {t("dash.periodInvalid")}
+            </div>
+          )}
+          {(dateFrom || dateTo || categoryId || technicianId) && (
+            <button
+              type="button"
+              className="btn btn-outline btn-sm"
+              onClick={() => {
+                setDateFrom("");
+                setDateTo("");
+                setCategoryId("");
+                setTechnicianId("");
+              }}
+            >
+              {t("dash.resetFilters")}
+            </button>
+          )}
+        </form>
       )}
 
       {enabled && summary.isPending && <p className="muted">{t("common.loading")}</p>}
@@ -131,6 +211,66 @@ function SummarySection({
           color="#34d399"
         />
       </div>
+
+      {summary.overdue !== null && (
+        <div className="stats">
+          <StatCard icon={<ClockIcon />} value={summary.overdue} label={t("stat.overdue")} color="#ff6b7a" />
+          {summary.technician_load && (
+            <div className="card stat" style={{ ["--c" as string]: "#8b5cf6" }}>
+              <span className="stat-icon">
+                <WrenchIcon />
+              </span>
+              <div>
+                <b>{summary.technician_load.percent}%</b>
+                <span>{t("stat.load")}</span>
+                <small className="muted block" title={summary.technician_load.method}>
+                  {formatDuration(summary.technician_load.scheduled_minutes, t("time.h"), t("time.min"))} /{" "}
+                  {formatDuration(summary.technician_load.available_minutes, t("time.h"), t("time.min"))}
+                </small>
+              </div>
+            </div>
+          )}
+          <div className="card stat" style={{ ["--c" as string]: "#06d6ff" }}>
+            <span className="stat-icon">
+              <ClipboardIcon />
+            </span>
+            <div>
+              <b>{formatKgs(summary.approved_estimates_cents)}</b>
+              <span>{t("stat.estimates", { n: summary.approved_estimates_count })}</span>
+            </div>
+          </div>
+          {summary.materials_cost_cents !== null && (
+            <div className="card stat" style={{ ["--c" as string]: "#fbbf24" }}>
+              <span className="stat-icon">
+                <WrenchIcon />
+              </span>
+              <div>
+                <b>{formatKgs(summary.materials_cost_cents)}</b>
+                <span>{t("stat.materials")}</span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      {summary.overdue !== null && <p className="muted">{t("dash.estimatesNote")}</p>}
+
+      {summary.upcoming_visits.length > 0 && (
+        <section className="card" aria-labelledby="visits-title" style={{ marginBottom: 14 }}>
+          <h2 id="visits-title">{t("dash.upcoming")}</h2>
+          <ul className="list">
+            {summary.upcoming_visits.map((v) => (
+              <li key={`${v.request_id}-${v.start_at}`}>
+                <Link href={`/app/requests/${v.request_id}`}>
+                  #{v.request_id} {v.title}
+                </Link>{" "}
+                <span className="muted">
+                  {formatDateTime(v.start_at, lang, membership.timezone)} - {v.technician}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <div className="grid-2">
         <section className="card" aria-labelledby="recent-title">

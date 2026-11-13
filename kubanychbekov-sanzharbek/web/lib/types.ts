@@ -128,7 +128,13 @@ export type Category = {
   is_active: boolean;
   required_skills?: string[];
 };
-export type Property = { id: number; name: string; address: string; is_active: boolean };
+export type Property = {
+  id: number;
+  name: string;
+  address: string;
+  contact_instructions?: string | null;
+  is_active: boolean;
+};
 export type Asset = {
   id: number;
   property_id: number;
@@ -136,6 +142,22 @@ export type Asset = {
   name: string;
   asset_type: string;
   status: string;
+  serial_number?: string | null;
+  installed_on?: string | null;
+  notes?: string | null;
+};
+
+export type AssetHistoryEntry = {
+  request_id: number;
+  title: string;
+  status: string;
+  priority: string;
+  created_at: string;
+  completed_at: string | null;
+  technicians: string[];
+  result: string | null;
+  materials: { item_name: string; quantity: string; total_cents: number }[];
+  attachments: { id: number; purpose: string }[];
 };
 
 export const ASSIGNMENT_STATUSES = [
@@ -211,6 +233,20 @@ export type Summary = {
   by_priority: Record<string, number>;
   by_category: { category_id: number; name: string; count: number }[];
   daily: { date: string; created: number; completed: number }[];
+  date_from: string;
+  date_to: string;
+  overdue: number | null;
+  upcoming_visits: { request_id: number; title: string; technician: string; start_at: string; end_at: string }[];
+  technician_load: {
+    percent: number;
+    scheduled_minutes: number;
+    available_minutes: number;
+    technicians: number;
+    method: string;
+  } | null;
+  approved_estimates_cents: number;
+  approved_estimates_count: number;
+  materials_cost_cents: number | null;
 };
 
 export type InventoryItem = {

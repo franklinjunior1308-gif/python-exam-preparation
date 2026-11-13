@@ -5,6 +5,7 @@ import { type FormEvent, useState } from "react";
 import { api } from "@/lib/api-client";
 import type { WorkingHours } from "@/lib/types";
 import { useI18n } from "./Providers";
+import { OrganizationSettings } from "./OrganizationSettings";
 import { useSession } from "./Shell";
 
 type Day = { open: boolean; start: string; end: string };
@@ -156,6 +157,7 @@ export function SettingsPage() {
           )}
         </form>
 
+        {admin && <OrganizationSettings />}
         <section className="card">
           <h2>{t("settings.holidays")}</h2>
           {(addHoliday.isError || removeHoliday.isError) && (

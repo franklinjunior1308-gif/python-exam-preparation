@@ -73,6 +73,12 @@ export function Shell({
       show: role === "dispatcher" || role === "admin",
     },
     {
+      href: "/app/assets",
+      label: t("nav.assets"),
+      icon: <LayersIcon />,
+      show: role === "dispatcher" || role === "admin",
+    },
+    {
       href: "/app/categories",
       label: t("nav.categories"),
       icon: <ClipboardIcon />,
