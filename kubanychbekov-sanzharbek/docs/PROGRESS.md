@@ -161,14 +161,11 @@ to `~/.gradle/wrapper/dists/gradle-9.5.0-all/aca6g93cdtcf0oapcfka748qh/`, `tar -
 `gradle-9.5.0-all.zip.ok`.
 
 ## CURRENT NEXT STEP (resume here)
-Fork 1 is the single main session (the user closed the others). State on 2026-11-13: all mandatory features are
-implemented and committed (HEAD is clean). Backend 269 tests + ruff + ruff format + ty pass in Docker; web lint,
-typecheck, 23 tests pass; Flutter format, analyze, 28 tests pass; APK rebuilt after the materials screen.
-Backend gaps done this round: feedback, audit feed, technician skills/availability, login lockout, request IDs +
-JSON logs, staff/roles, categories admin, SSE live updates (`GET /events`), SLA report (`GET /reports/sla`).
-Left: (1) final `scripts/verify-all.sh` (Docker mode) and `scripts/smoke.sh` on a clean start; (2) install the APK on
-a phone and record the 5-minute video (`docs/VIDEO_SCRIPT.md`); (3) rebuild the APK if mobile changes; (4) submission
-on Sunday 2026-11-15 after 16:00 (below). Never `docker compose down -v`; never push before then.
+State on 2026-11-13 evening: every mandatory requirement of the PDF is implemented and committed; `verify-all` passes
+(backend 284, web 23, Flutter 37) and a clean-start rehearsal passed (see `VERIFICATION.md`). Single main session.
+Left for the candidate: (1) finish the physical-phone scenario (`docs/ANDROID_PHONE_TEST.md`), (2) record the 5-minute
+video (`docs/VIDEO_SCRIPT.md`) and put the YouTube link at the top of `README.md`, (3) submit on Sunday 2026-11-15 after
+16:00 (below). Never `docker compose down -v`; never push to the shared repository before then.
 
 ## Submission (do not do early)
 Only on Sunday 2026-11-15 after 16:00: accept the invitation, create branch `submission/kubanychbekov-sanzharbek`,

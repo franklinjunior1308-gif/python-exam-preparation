@@ -13,7 +13,7 @@ runs, kept for history; the numbers in the first section are the current ones.
 | Backend tests | `docker compose --profile test run --rm backend-tests` (real PostgreSQL) | **245 passed**, 0 failed, 1 deprecation warning from a dependency |
 | Web | `bun install --frozen-lockfile`, `lint`, `typecheck`, `test:ci`, `build` | all exit 0; **23 tests passed** |
 | Mobile | `flutter pub get`, `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze`, `flutter test` | clean; **28 passed** (2 live-backend tests are skipped without `FIXFLOW_API`) |
-| APK | `flutter build apk --debug` | built `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 271 156 bytes, SHA-256 `a36dc4d778d728e63ed5253b274b141eafe8b9c6a62aa7d18e833b81724bdda8` (a build output; it is not committed) |
+| APK | `flutter build apk --debug` | built `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 285 451 bytes, SHA-256 `cc5b54e060f7d27f78f038686c5649f970aae1762b9a28e9cb52c67f86023dd8` (a build output; it is not committed) |
 
 Why the Docker switch: on the author's PC Windows Smart App Control blocks `pydantic_core`, so app-importing tests
 cannot run on the host. Without the switch (`./scripts/verify-all.sh`) the same script runs `uv run pytest -q` on the
@@ -116,8 +116,8 @@ Run on the author's Windows machine, backend tests in Docker (`BACKEND_TESTS_IN_
 | Web | `bun run lint`, `typecheck`, `test:ci`, `build` | clean, 23 tests passed, production build succeeded |
 | Android | `dart format`, `flutter analyze`, `flutter test`, `flutter build apk --debug` | clean, 28 passed (2 live tests skipped without `FIXFLOW_API`), APK built |
 
-APK: `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 271 156 bytes,
-SHA-256 `a36dc4d778d728e63ed5253b274b141eafe8b9c6a62aa7d18e833b81724bdda8`.
+APK: `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 285 451 bytes,
+SHA-256 `cc5b54e060f7d27f78f038686c5649f970aae1762b9a28e9cb52c67f86023dd8`.
 **Still not checked on a physical phone** (see `ANDROID_PHONE_TEST.md`).
 
 **Do not run two backend-test runs against the same database at once.** The suite truncates shared tables, so two
@@ -125,3 +125,27 @@ parallel runs on `fixflow_test` deadlocked (`DeadlockDetected`, 16 failed and 50
 gives 269 passed). To run in parallel, give each run its own database:
 `docker compose --profile test run --rm -e DATABASE_URL=postgresql+psycopg://fixflow:fixflow@db:5432/<name> -e TEST_DATABASE_URL=<same> backend-tests`
 (the database is created on demand).
+
+
+## Final full check after the last audit - 2026-11-13
+`BACKEND_TESTS_IN_DOCKER=1 ./scripts/verify-all.sh` finished with `ALL CHECKS PASSED` (exit 0):
+
+| Part | Result |
+|---|---|
+| Backend (`ruff check`, `ruff format --check`, `ty check`, `pytest` on PostgreSQL 17) | clean, **284 passed** |
+| Web (`bun install --frozen-lockfile`, `lint`, `typecheck`, `test:ci`, `build`) | clean, **23 passed**, production build succeeded |
+| Android (`dart format`, `flutter analyze`, `flutter test`, `flutter build apk --debug`) | clean, **37 passed** (2 live tests skipped inside verify-all), APK built |
+| Live Flutter test against the real API (`FIXFLOW_API=http://localhost:8000 flutter test test/live`) | 2 passed |
+| `./scripts/smoke.sh` on the running seeded stack | `smoke: all checks passed` (409 double booking, tenant isolation) |
+| Clean-start rehearsal (separate compose project `rehearsal`, ports 18000/13000, own volumes) | build + readiness, seed and seed_extra, repeat adds nothing, `scripts/e2e_scenario.py` all checks passed, web `/` and `/login` answer 200, a container restart kept all 76 requests |
+
+APK: `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 285 451 bytes, SHA-256 `cc5b54e060f7d27f78f038686c5649f970aae1762b9a28e9cb52c67f86023dd8`.
+
+Added in the last audit (each with automated tests): equipment and property management with history, reports with
+period/category/technician filters, technician load, approved-estimate and material totals, request list technician and
+date filters with due-date sorting, organization name/time zone, rework notification, session-revocation audit, request
+body limit, SLA and earlier jobs on the technician's task, own availability, notes and one timeline in the web.
+
+Not verified by an automated check: the full phone scenario (`docs/ANDROID_PHONE_TEST.md` steps 4-11) on a real device;
+the candidate reported a successful sign-in and task list on a real phone. Browser end-to-end tests do not exist.
+The rehearsal's two Docker volumes (`rehearsal_db_data`, `rehearsal_uploads`) were left in place on purpose.

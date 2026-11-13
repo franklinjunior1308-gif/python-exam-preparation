@@ -1,7 +1,7 @@
 # Installing the APK on a phone and the main end-to-end scenario
 
 APK (build output, not committed): `mobile/build/app/outputs/flutter-apk/app-debug.apk`
-(190 271 156 bytes, SHA-256 `a36dc4d778d728e63ed5253b274b141eafe8b9c6a62aa7d18e833b81724bdda8`). A copy for easy
+(190 285 451 bytes, SHA-256 `cc5b54e060f7d27f78f038686c5649f970aae1762b9a28e9cb52c67f86023dd8`). A copy for easy
 transfer: `C:\Users\<user>\Downloads\FixFlow-debug.apk`. Rebuild: `cd mobile && flutter build apk --debug`.
 
 ## 1. Connect the phone to the local backend
