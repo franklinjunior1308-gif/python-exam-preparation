@@ -168,6 +168,13 @@ const Map<String, String> en = {
   'err.item_not_found': 'Material not found.',
   'err.too_many_attempts':
       'Too many failed sign-in attempts. Wait a few minutes and try again.',
+  'notif.assignment_created': 'New task: request #{id}',
+  'notif.assignment_rescheduled': 'Task changed: request #{id}',
+  'notif.assignment_canceled': 'Task removed: request #{id}',
+  'notif.assignment_declined': 'Technician declined request #{id}',
+  'notif.request_completed': 'Request #{id} was completed',
+  'notif.sla_overdue': 'Request #{id} is past its SLA',
+  'notif.estimate_submitted': 'Estimate for request #{id} awaits your decision',
   'err.generic': 'The operation failed. Please try again.',
 };
 
@@ -338,6 +345,13 @@ const Map<String, String> ru = {
   'err.item_not_found': 'Материал не найден.',
   'err.too_many_attempts':
       'Слишком много неудачных попыток входа. Подождите несколько минут.',
+  'notif.assignment_created': 'Новое задание: заявка #{id}',
+  'notif.assignment_rescheduled': 'Задание изменено: заявка #{id}',
+  'notif.assignment_canceled': 'Задание снято: заявка #{id}',
+  'notif.assignment_declined': 'Техник отказался от заявки #{id}',
+  'notif.request_completed': 'Заявка #{id} выполнена',
+  'notif.sla_overdue': 'Заявка #{id} просрочена по SLA',
+  'notif.estimate_submitted': 'Смета по заявке #{id} ждёт вашего решения',
   'err.generic': 'Операция не удалась. Повторите попытку.',
 };
 
@@ -345,6 +359,20 @@ String tr(String lang, String key, [Map<String, Object?>? params]) {
   var text = (lang == 'ru' ? ru : en)[key] ?? en[key] ?? key;
   params?.forEach((name, value) => text = text.replaceAll('{$name}', '$value'));
   return text;
+}
+
+/// Notification titles are system text written by the server in English. Known types are shown in
+/// the user's language; anything else keeps the server text. The body is user data (a request
+/// title or a reason) and is never translated.
+String trNotificationTitle(
+  String lang,
+  String type,
+  int? requestId,
+  String serverTitle,
+) {
+  final key = 'notif.$type';
+  if (requestId == null || !en.containsKey(key)) return serverTitle;
+  return tr(lang, key, {'id': requestId});
 }
 
 /// Backend error code -> translated message, with a safe fallback.

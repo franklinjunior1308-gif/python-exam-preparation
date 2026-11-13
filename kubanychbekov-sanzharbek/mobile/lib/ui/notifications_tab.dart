@@ -92,7 +92,12 @@ class NotificationsTab extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      n.title,
+                                      trNotificationTitle(
+                                        state.lang,
+                                        n.type,
+                                        n.requestId,
+                                        n.title,
+                                      ),
                                       style: const TextStyle(
                                         fontWeight: FontWeight.w700,
                                       ),

@@ -126,6 +126,24 @@ void main() {
       expect(trError('en', 'something_unknown'), tr('en', 'err.generic'));
     });
 
+    test('system notification titles follow the language, user data does not', () {
+      const server = 'New task: request #88';
+      expect(
+        trNotificationTitle('ru', 'assignment_created', 88, server),
+        'Новое задание: заявка #88',
+      );
+      expect(
+        trNotificationTitle('en', 'assignment_created', 88, server),
+        server,
+      );
+      // unknown types and notifications without a request keep the server text
+      expect(
+        trNotificationTitle('ru', 'low_stock', 1, 'Low stock: Filter'),
+        'Low stock: Filter',
+      );
+      expect(trNotificationTitle('ru', 'sla_overdue', null, 'x'), 'x');
+    });
+
     test(
       'times are shown in the organization timezone, not the phone zone',
       () {
