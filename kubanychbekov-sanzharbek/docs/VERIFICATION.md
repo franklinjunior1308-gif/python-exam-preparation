@@ -134,7 +134,7 @@ gives 269 passed). To run in parallel, give each run its own database:
 |---|---|
 | Backend (`ruff check`, `ruff format --check`, `ty check`, `pytest` on PostgreSQL 17) | clean, **284 passed** |
 | Web (`bun install --frozen-lockfile`, `lint`, `typecheck`, `test:ci`, `build`) | clean, **23 passed**, production build succeeded |
-| Android (`dart format`, `flutter analyze`, `flutter test`, `flutter build apk --debug`) | clean, **37 passed** (2 live tests skipped inside verify-all), APK built |
+| Android (`dart format`, `flutter analyze`, `flutter test`, `flutter build apk --debug`) | clean, **38 passed** (2 live tests skipped inside verify-all), APK built (an earlier run of this check counted 37, before the widget test mentioned below was added) |
 | Live Flutter test against the real API (`FIXFLOW_API=http://localhost:8000 flutter test test/live`) | 2 passed |
 | `./scripts/smoke.sh` on the running seeded stack | `smoke: all checks passed` (409 double booking, tenant isolation) |
 | Clean-start rehearsal (separate compose project `rehearsal`, ports 18000/13000, own volumes) | build + readiness, seed and seed_extra, repeat adds nothing, `scripts/e2e_scenario.py` all checks passed, web `/` and `/login` answer 200, a container restart kept all 76 requests |
@@ -189,3 +189,10 @@ and the Makefile are pinned to LF line endings in `.gitattributes`. The second r
 
 Left on the machine on purpose: Docker volumes `rehearsal_*` and `cleanclone_*` (throwaway data of these rehearsals; deleting
 Docker volumes was blocked and is not needed) and the clone folders under `C:\dev\cleanclone-*`.
+
+## Test run recorded for the demo video - 2026-11-13 ~23:55
+Run in a console window while it was screen-recorded (host: Windows, same machine as above):
+`bun run test:ci` -> **23 pass, 0 fail**; `flutter test` -> **+38 ~2: All other tests passed** (38 passed, 2 live tests skipped without `FIXFLOW_API`);
+`docker compose --profile test run --rm backend-tests` -> ruff clean, **284 passed, 1 warning in 60.24s** (separate database `fixflow_test`; demo data untouched).
+The demo scenario itself (request #96: created, assigned with Smart Assign, accepted/started/noted/photo/offline note/completed on a real phone, closed with a 5-star rating)
+was recorded the same night; the offline note reached PostgreSQL exactly once.

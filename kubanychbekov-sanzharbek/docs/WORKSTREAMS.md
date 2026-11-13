@@ -17,5 +17,5 @@ Rules
 - **Before integrating or committing:** `git status` (never stage another owner's uncommitted files), then the
   owner's tests: backend `docker compose --profile test run --rm backend-tests`; web `bun run lint && bun run
   typecheck && bun run test:ci && bun run build`; mobile `flutter analyze && flutter test`.
-- **Never** push to GitHub before the shared repository opens (Sunday 2026-11-15 16:00 Asia/Bishkek), never reset
+- **Never** push to the exam repository before it opens (Sunday 2026-11-15 16:00 Asia/Bishkek; pushes to the personal backup are fine), never reset
   the database or Docker volumes, never delete history.
