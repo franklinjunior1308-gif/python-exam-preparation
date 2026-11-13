@@ -192,6 +192,7 @@ export type Assignment = {
   end_at: string;
   timezone: string;
   status: AssignmentStatus;
+  created_at?: string | null;
 };
 
 export type Suggestion = {
@@ -353,4 +354,26 @@ export type SlaReportData = {
   avg_resolution_minutes: number | null;
   escalated: number;
   by_priority: { priority: Priority; total: number; late: number }[];
+};
+
+export type Note = {
+  id: number;
+  request_id: number;
+  author_user_id: number;
+  author_name: string;
+  visibility: "public" | "internal";
+  kind: string;
+  body: string;
+  created_at: string;
+};
+
+export type MaterialUsage = {
+  id: number;
+  request_id: number;
+  item_id: number;
+  item_name: string;
+  quantity: string;
+  unit_price_cents: number;
+  total_cents: number;
+  created_at: string;
 };

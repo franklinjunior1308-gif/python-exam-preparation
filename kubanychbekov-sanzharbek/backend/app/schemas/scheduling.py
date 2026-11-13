@@ -89,6 +89,7 @@ class AssignmentOut(BaseModel):
     end_at: datetime
     timezone: str
     status: AssignmentStatus
+    created_at: datetime | None = None  # when the visit was booked (request timeline)
 
 
 class AbsenceOut(BaseModel):

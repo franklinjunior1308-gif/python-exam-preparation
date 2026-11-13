@@ -5,11 +5,14 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { ApiError, api } from "@/lib/api-client";
 import { formatDateTime, needsReason } from "@/lib/format";
-import type { Category, HistoryEntry, Property, RequestStatus, ServiceRequest } from "@/lib/types";
+import type { Category, Property, RequestStatus, ServiceRequest } from "@/lib/types";
+import { ActivityTimeline } from "./ActivityTimeline";
 import { AttachmentsPanel } from "./AttachmentsPanel";
 import { AssignPanel } from "./AssignPanel";
 import { EstimatesPanel } from "./EstimatesPanel";
 import { FeedbackPanel } from "./FeedbackPanel";
+import { MaterialsPanel } from "./MaterialsPanel";
+import { NotesPanel } from "./NotesPanel";
 import { SlaBadge } from "./SlaBadge";
 import { PriorityBadge, StatusBadge } from "./Badges";
 import { useI18n } from "./Providers";
@@ -27,10 +30,6 @@ export function RequestDetail({ requestId }: { requestId: number }) {
   const request = useQuery({
     queryKey: ["request", orgId, requestId],
     queryFn: () => api<ServiceRequest>(`requests/${requestId}`),
-  });
-  const history = useQuery({
-    queryKey: ["history", orgId, requestId],
-    queryFn: () => api<HistoryEntry[]>(`requests/${requestId}/history`),
   });
   const categories = useQuery({ queryKey: ["categories", orgId], queryFn: () => api<Category[]>("categories") });
   const properties = useQuery({ queryKey: ["properties", orgId], queryFn: () => api<Property[]>("properties") });
@@ -137,6 +136,8 @@ export function RequestDetail({ requestId }: { requestId: number }) {
           <AssignPanel request={req} />
           <EstimatesPanel request={req} />
           <FeedbackPanel request={req} />
+          <MaterialsPanel request={req} />
+          <NotesPanel request={req} />
           <AttachmentsPanel request={req} />
           <section className="card">
             <h2>{t("detail.actions")}</h2>
@@ -158,21 +159,7 @@ export function RequestDetail({ requestId }: { requestId: number }) {
             )}
           </section>
 
-          <section className="card">
-            <h2>{t("detail.history")}</h2>
-            {history.isPending && <p className="muted">{t("common.loading")}</p>}
-            {history.data && (
-              <ol className="timeline">
-                {[...history.data].reverse().map((entry) => (
-                  <li key={entry.id}>
-                    <StatusBadge status={entry.to_status} />
-                    <small>{formatDateTime(entry.created_at, lang, membership.timezone)}</small>
-                    {entry.reason && <small>{entry.reason}</small>}
-                  </li>
-                ))}
-              </ol>
-            )}
-          </section>
+          <ActivityTimeline request={req} />
         </div>
       </div>
 

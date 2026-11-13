@@ -397,6 +397,7 @@ def _to_out(
         end_at=a.end_at,
         timezone=a.timezone,
         status=a.status,
+        created_at=a.created_at,
     )
 
 
