@@ -6,7 +6,8 @@ from sqlalchemy import select
 from app.api.deps import DbDep, OrgDep
 from app.domain.enums import Role
 from app.models import Asset, Property, ServiceCategory
-from app.schemas.catalog import AssetOut, CategoryOut, PropertyOut
+from app.schemas.catalog import AssetOut, CategoryIn, CategoryOut, CategoryUpdate, PropertyOut
+from app.services import categories
 
 router = APIRouter(tags=["catalog"])
 
@@ -20,6 +21,18 @@ def list_categories(
     if not include_inactive or ctx.role not in {Role.ADMIN, Role.DISPATCHER}:
         query = query.where(ServiceCategory.is_active.is_(True))
     return list(db.scalars(query.order_by(ServiceCategory.name)))
+
+
+@router.post("/categories", response_model=CategoryOut, status_code=201)
+def create_category(data: CategoryIn, ctx: OrgDep, db: DbDep) -> ServiceCategory:
+    return categories.create_category(db, ctx, data)
+
+
+@router.put("/categories/{category_id}", response_model=CategoryOut)
+def update_category(
+    category_id: int, data: CategoryUpdate, ctx: OrgDep, db: DbDep
+) -> ServiceCategory:
+    return categories.update_category(db, ctx, category_id, data)
 
 
 @router.get("/properties", response_model=list[PropertyOut])

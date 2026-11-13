@@ -146,3 +146,15 @@ Errors: `409 already_member`, `409 last_admin` (the organization must keep one a
 `409 technician_has_active_assignments`, `404 user_not_found` (also for other organizations), `403 forbidden`.
 Deactivating a member revokes all of their sessions at once. Audited as `user.created`, `user.role_changed`,
 `user.deactivated`, `user.activated`.
+
+### Categories admin (ORG-03, administrators only)
+```http
+POST /api/v1/categories
+{"name": "Plumbing", "description": "Pipes", "default_duration_min": 90, "required_skills": ["plumbing"]}   -> 201
+PUT  /api/v1/categories/{id}      same fields + "is_active": false   -> 200
+CategoryOut: {"id", "name", "description", "default_duration_min", "required_skills", "is_active"}
+```
+Duration is 5-480 minutes (`422`); the name is unique per organization (`409 category_name_taken`); skills are
+lower-cased and de-duplicated. A disabled category stays on existing requests but is refused for new ones
+(`422 category_inactive`). `GET /categories?include_inactive=true` (admin/dispatcher) lists disabled ones too.
+Audited as `category.created` / `category.updated`.
