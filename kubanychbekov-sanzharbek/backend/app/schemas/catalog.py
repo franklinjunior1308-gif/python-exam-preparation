@@ -1,3 +1,6 @@
+from datetime import date, datetime
+from decimal import Decimal
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.domain.enums import AssetStatus
@@ -47,6 +50,7 @@ class PropertyOut(BaseModel):
     id: int
     name: str
     address: str
+    contact_instructions: str | None = None
     is_active: bool
 
 
@@ -59,3 +63,82 @@ class AssetOut(BaseModel):
     name: str
     asset_type: str
     status: AssetStatus
+    serial_number: str | None = None
+    installed_on: date | None = None
+    notes: str | None = None
+
+
+def _clean(value: str, label: str, minimum: int = 2) -> str:
+    value = value.strip()
+    if len(value) < minimum:
+        raise ValueError(f"{label} is too short")
+    return value
+
+
+class PropertyIn(BaseModel):
+    name: str = Field(max_length=200)
+    address: str = Field(max_length=500)
+    contact_instructions: str | None = Field(default=None, max_length=2000)
+    is_active: bool = True
+
+    @field_validator("name")
+    @classmethod
+    def _name(cls, value: str) -> str:
+        return _clean(value, "name")
+
+    @field_validator("address")
+    @classmethod
+    def _address(cls, value: str) -> str:
+        return _clean(value, "address", 3)
+
+
+class AssetUpdate(BaseModel):
+    """Everything about a piece of equipment except its code, which other records refer to."""
+
+    property_id: int
+    name: str = Field(max_length=200)
+    asset_type: str = Field(max_length=100)
+    serial_number: str | None = Field(default=None, max_length=100)
+    installed_on: date | None = None
+    status: AssetStatus = AssetStatus.ACTIVE
+    notes: str | None = Field(default=None, max_length=2000)
+
+    @field_validator("name", "asset_type")
+    @classmethod
+    def _text(cls, value: str) -> str:
+        return _clean(value, "text")
+
+
+class AssetIn(AssetUpdate):
+    code: str = Field(min_length=1, max_length=64)
+
+    @field_validator("code")
+    @classmethod
+    def _code(cls, value: str) -> str:
+        return _clean(value, "code", 1)
+
+
+class HistoryMaterial(BaseModel):
+    item_name: str
+    quantity: Decimal
+    total_cents: int
+
+
+class HistoryFile(BaseModel):
+    id: int
+    purpose: str
+
+
+class HistoryEntry(BaseModel):
+    """One request on this equipment: who did it, when, with what result (ASSET-04)."""
+
+    request_id: int
+    title: str
+    status: str
+    priority: str
+    created_at: datetime
+    completed_at: datetime | None
+    technicians: list[str]
+    result: str | None  # the technician's closing note
+    materials: list[HistoryMaterial]
+    attachments: list[HistoryFile]

@@ -185,3 +185,20 @@ GET /api/v1/reports/sla?days=30     (1-365)
 Counts requests completed in the period and judges each by its SLA budget in working time (late = over budget at
 the moment of completion). `avg_resolution_minutes` is working minutes and `null` when nothing was completed;
 `escalated` counts escalations raised in the period. Customers and technicians get `403`.
+
+### Properties and equipment (ASSET-01..05)
+```http
+POST /api/v1/properties   {"name", "address", "contact_instructions"?, "is_active"?}        -> 201 (dispatcher/admin)
+PUT  /api/v1/properties/{id}  same fields; is_active=false hides it from new requests, history stays
+GET  /api/v1/properties?include_inactive=true            (staff only sees inactive ones)
+POST /api/v1/assets  {"property_id", "code", "name", "asset_type", "serial_number"?, "installed_on"?,
+                      "status": "ACTIVE|OUT_OF_SERVICE|RETIRED", "notes"?}                  -> 201
+PUT  /api/v1/assets/{id}   same fields without "code" (the code is fixed)
+GET  /api/v1/assets/{id}/history   -> [{"request_id", "title", "status", "priority", "created_at", "completed_at",
+                                        "technicians": [name], "result", "materials": [{"item_name", "quantity", "total_cents"}],
+                                        "attachments": [{"id", "purpose"}]}]
+GET  /api/v1/assets/{id}/summary   open requests, last completed service, next planned maintenance
+```
+Errors: `409 asset_code_taken`, `409 asset_retired` (retired equipment cannot be reactivated; new maintenance plans are
+refused), `404` for another organization's property/equipment, `403` for customers and technicians (history is staff-only).
+Audited as `property.created/updated` and `asset.created/updated/retired`.
