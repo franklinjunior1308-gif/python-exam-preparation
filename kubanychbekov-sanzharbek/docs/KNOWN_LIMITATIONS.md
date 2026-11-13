@@ -44,11 +44,11 @@ Status of work in progress. Nothing is marked done unless it works end to end.
   server); the web refetches the affected data on each hint and everything after a reconnect (notifications also
   refetch every 30 s). Android does not listen to the stream and refreshes on
   start, pull-to-refresh and sync.
-- **Physical phone, partly confirmed.** The candidate installed the APK on a real Android phone, signed in and saw the
-  task list from the real backend (reported by the candidate, not recorded by an automated check). The rest of the phone
-  scenario (`docs/ANDROID_PHONE_TEST.md` steps 4-11: accept/start, note and photo, airplane mode, completion) is
-  **NOT VERIFIED** on a device by the assistant: Android refused remote taps over USB (`INJECT_EVENTS`). The same steps
-  are covered against the real API by `scripts/e2e_scenario.py` and `mobile/test/live`.
+- **Physical phone: main scenario confirmed, two cases not.** On 2026-11-13 the main technician scenario was run on a real
+  Android phone (accept, start, note and photo, offline note and reconnect, completion; see `ANDROID_PHONE_TEST.md`).
+  **NOT VERIFIED on a device:** restarting the app while the offline queue is not empty (E2E-04) and the reassignment
+  conflict (E2E-05); both are covered by automated tests. While the notes list is offline the app shows only the
+  queue, because the server notes are not cached locally (tasks are).
 - **Risk register (SEC-09):** (1) per-e-mail login lockout can be used to pause an account (see below), mitigation:
   15-minute window, audit of failures, no per-IP limit yet; (2) the Android session token is in app-private storage,
   not the keystore, mitigation: sandboxed storage, token revocable server-side; (3) plain HTTP is allowed for local

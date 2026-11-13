@@ -13,7 +13,7 @@ runs, kept for history; the numbers in the first section are the current ones.
 | Backend tests | `docker compose --profile test run --rm backend-tests` (real PostgreSQL) | **245 passed**, 0 failed, 1 deprecation warning from a dependency |
 | Web | `bun install --frozen-lockfile`, `lint`, `typecheck`, `test:ci`, `build` | all exit 0; **23 tests passed** |
 | Mobile | `flutter pub get`, `dart format --output=none --set-exit-if-changed lib test`, `flutter analyze`, `flutter test` | clean; **28 passed** (2 live-backend tests are skipped without `FIXFLOW_API`) |
-| APK | `flutter build apk --debug` | built `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 285 451 bytes, SHA-256 `cc5b54e060f7d27f78f038686c5649f970aae1762b9a28e9cb52c67f86023dd8` (a build output; it is not committed) |
+| APK | `flutter build apk --debug` | built `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 285 366 bytes, SHA-256 `d29a54a5d37e84c72bf2bb7a8a36e8ca9db92ad7f7adc6012fea0711a7870a03` (a build output; it is not committed) |
 
 Why the Docker switch: on the author's PC Windows Smart App Control blocks `pydantic_core`, so app-importing tests
 cannot run on the host. Without the switch (`./scripts/verify-all.sh`) the same script runs `uv run pytest -q` on the
@@ -116,8 +116,8 @@ Run on the author's Windows machine, backend tests in Docker (`BACKEND_TESTS_IN_
 | Web | `bun run lint`, `typecheck`, `test:ci`, `build` | clean, 23 tests passed, production build succeeded |
 | Android | `dart format`, `flutter analyze`, `flutter test`, `flutter build apk --debug` | clean, 28 passed (2 live tests skipped without `FIXFLOW_API`), APK built |
 
-APK: `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 285 451 bytes,
-SHA-256 `cc5b54e060f7d27f78f038686c5649f970aae1762b9a28e9cb52c67f86023dd8`.
+APK: `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 285 366 bytes,
+SHA-256 `d29a54a5d37e84c72bf2bb7a8a36e8ca9db92ad7f7adc6012fea0711a7870a03`.
 **Still not checked on a physical phone** (see `ANDROID_PHONE_TEST.md`).
 
 **Do not run two backend-test runs against the same database at once.** The suite truncates shared tables, so two
@@ -139,7 +139,7 @@ gives 269 passed). To run in parallel, give each run its own database:
 | `./scripts/smoke.sh` on the running seeded stack | `smoke: all checks passed` (409 double booking, tenant isolation) |
 | Clean-start rehearsal (separate compose project `rehearsal`, ports 18000/13000, own volumes) | build + readiness, seed and seed_extra, repeat adds nothing, `scripts/e2e_scenario.py` all checks passed, web `/` and `/login` answer 200, a container restart kept all 76 requests |
 
-APK: `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 285 451 bytes, SHA-256 `cc5b54e060f7d27f78f038686c5649f970aae1762b9a28e9cb52c67f86023dd8`.
+APK: `mobile/build/app/outputs/flutter-apk/app-debug.apk`, 190 285 366 bytes, SHA-256 `d29a54a5d37e84c72bf2bb7a8a36e8ca9db92ad7f7adc6012fea0711a7870a03`.
 
 Added in the last audit (each with automated tests): equipment and property management with history, reports with
 period/category/technician filters, technician load, approved-estimate and material totals, request list technician and
@@ -149,3 +149,14 @@ body limit, SLA and earlier jobs on the technician's task, own availability, not
 Not verified by an automated check: the full phone scenario (`docs/ANDROID_PHONE_TEST.md` steps 4-11) on a real device;
 the candidate reported a successful sign-in and task list on a real phone. Browser end-to-end tests do not exist.
 The rehearsal's two Docker volumes (`rehearsal_db_data`, `rehearsal_uploads`) were left in place on purpose.
+
+
+## Real phone check - 2026-11-13
+The main technician scenario was run on a real Xiaomi phone over USB (details and caveats in `ANDROID_PHONE_TEST.md`,
+section 4): task appears, accept, start, note, gallery photo, offline note with the backend stopped and exactly one copy
+after reconnect, completion; dispatcher and customer sides were checked through the API (`COMPLETED`, SLA final, one
+rating then 409). The check found a real defect (a delivered note did not appear in the task screen until the app was
+restarted); it was fixed in `task_detail_screen.dart` and a widget test that fails on the old code was added (Flutter
+suite now 38 tests, `flutter analyze` and `dart format` clean). The APK installed on the phone and copied to Downloads is
+the rebuilt one: 190 285 366 bytes, SHA-256 `d29a54a5d37e84c72bf2bb7a8a36e8ca9db92ad7f7adc6012fea0711a7870a03`. Backend (284) and web (23) were not changed after the last full
+`verify-all`; the Flutter suite was rerun on its own after this fix.

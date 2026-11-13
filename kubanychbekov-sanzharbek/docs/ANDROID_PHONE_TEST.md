@@ -1,7 +1,7 @@
 # Installing the APK on a phone and the main end-to-end scenario
 
 APK (build output, not committed): `mobile/build/app/outputs/flutter-apk/app-debug.apk`
-(190 285 451 bytes, SHA-256 `cc5b54e060f7d27f78f038686c5649f970aae1762b9a28e9cb52c67f86023dd8`). A copy for easy
+(190 285 366 bytes, SHA-256 `d29a54a5d37e84c72bf2bb7a8a36e8ca9db92ad7f7adc6012fea0711a7870a03`). A copy for easy
 transfer: `C:\Users\<user>\Downloads\FixFlow-debug.apk`. Rebuild: `cd mobile && flutter build apk --debug`.
 
 ## 1. Connect the phone to the local backend
@@ -43,13 +43,26 @@ All demo passwords are `Demo-2345!` (demo-only). Organization "AIT Facility". Te
 | 11 | Web, dispatcher | **Before step 8** (while the first visit is still active) book the same technician at the same time for another request | Refused with a conflict (409) message. After a visit is completed its slot is free again, so no conflict then |
 
 ## 4. Result of this check
-Fill in after running the scenario (do not mark a line done unless you saw it):
+Run on 2026-11-13 on a real Xiaomi phone (Android 15, 720x1600) over USB: the app was installed with `adb install`, the
+API was reached through `adb reverse tcp:8000 tcp:8000` (server URL `http://localhost:8000`), and the assistant drove
+and photographed the screen with `adb` while checking the database after each step. Honest differences from the table:
+the signed-in technician was `tech1.a` (Erlan Moldobekov) instead of `tech2.a`, and "airplane mode" was replaced by
+stopping the backend container for a few seconds (system settings were not changed).
 
 | Item | Result | Date |
 |---|---|---|
-| APK installed on a real phone | not yet confirmed | |
-| Phone reaches `http://<IP>:8000` | not yet confirmed | |
-| Steps 1-11 above | not yet confirmed | |
+| APK installed on a real phone | **confirmed** (`adb install`, also reinstalled over the old build with the session kept) | 2026-11-13 |
+| Phone reaches the API | **confirmed** (through `adb reverse`; the Wi-Fi address of the school network was unreachable because of network isolation) | 2026-11-13 |
+| 3. Task #91 (HIGH, booked by the dispatcher flow) appears after a refresh | **confirmed**, with the SLA card ("7 h 58 min of working time left, due 16 Nov 12:37, on track") | 2026-11-13 |
+| 4. Accept, then start | **confirmed** (database: ACCEPTED then IN_PROGRESS) | 2026-11-13 |
+| 5. Note and photo (gallery) | **confirmed** (1 note and 1 `after` photo stored; found and fixed a defect: the delivered note did not appear in the list until a restart) | 2026-11-13 |
+| 6-7. Offline note, then reconnect | **confirmed** with the backend stopped instead of airplane mode: "Waiting to sync" appeared, after the server returned there was exactly one copy of the note | 2026-11-13 |
+| 8. Complete with summary and photo | **confirmed** ("Work completed", database: COMPLETED, completion note stored) | 2026-11-13 |
+| 9. Dispatcher sees COMPLETED, history, notes, photo, SLA final | **confirmed through the API** (`finished: true`) | 2026-11-13 |
+| 10. Customer rates, second rating refused | **confirmed through the API** (201, then 409 `feedback_exists`) | 2026-11-13 |
+| 11. Double booking refused with 409 | covered by `scripts/smoke.sh` and `scripts/e2e_scenario.py` (not repeated on the phone) | 2026-11-13 |
+| Restart of the Android app with a non-empty queue (E2E-04) | **NOT VERIFIED** on the phone (the app was restarted by the reinstall, but with an empty queue); covered by `mobile/test/sync_test.dart` | |
+| Conflict after the dispatcher reassigns during offline work (E2E-05) | **NOT VERIFIED** on the phone; covered by `mobile/test/sync_test.dart` and the real-API live test | |
 
 Already verified without a phone: `scripts/e2e_scenario.py` runs the whole scenario through the real API as customer, dispatcher and technician `tech2.a` (photo, Smart Assign, 409 on the active slot, accept/start, note and photo retried with the same command id stored once, completion, final SLA, one rating then 409 on a second) and printed `all checks passed` against `http://10.116.90.235:8000`. Also: the same app code (sign-in, task list into the local database, offline queue,
 retry with the same command id, photo upload, refused state change) passed `flutter test test/live` against the real
