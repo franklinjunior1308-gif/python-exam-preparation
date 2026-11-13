@@ -224,10 +224,18 @@ class TaskCard extends StatelessWidget {
                 context.t('priority.${task.priority}'),
                 color: Fx.priorityColor(task.priority),
               ),
-              const Spacer(),
-              Pill(
-                context.t('status.${task.assignmentStatus}'),
-                color: Fx.statusColor(task.assignmentStatus),
+              // the status shrinks instead of overflowing on narrow phones / long translations
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Pill(
+                      context.t('status.${task.assignmentStatus}'),
+                      color: Fx.statusColor(task.assignmentStatus),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
@@ -254,11 +262,14 @@ class TaskCard extends StatelessWidget {
             children: [
               const Icon(Icons.schedule, size: 16, color: Fx.muted),
               const SizedBox(width: 4),
-              Text(
-                formatRange(task.startAt, task.endAt, tz, state.lang),
-                style: const TextStyle(color: Fx.muted, fontSize: 13),
+              Expanded(
+                child: Text(
+                  formatRange(task.startAt, task.endAt, tz, state.lang),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Fx.muted, fontSize: 13),
+                ),
               ),
-              const Spacer(),
               if (pending > 0)
                 Row(
                   children: [

@@ -378,6 +378,49 @@ void main() {
     });
   });
 
+  group('notifications screen', () {
+    testWidgets('Russian title stays on one line next to the read-all button', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(360, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final state = (await tester.runAsync(
+        () => buildState((r) async {
+          if (r.url.path.endsWith('/notifications')) {
+            return jsonResponse(200, [
+              {
+                'id': 1,
+                'type': 'assignment_created',
+                'title': 'New task: request #28',
+                'body': 'Ventilation fan does not work',
+                'request_id': 28,
+                'created_at': '2026-11-12T18:00:00Z',
+                'read_at': null,
+              },
+            ]);
+          }
+          return jsonResponse(200, []);
+        }, lang: 'ru'),
+      ))!;
+      await pumpApp(tester, state);
+      await tester.tap(find.text('События'));
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(find.text('Уведомления'), findsOneWidget);
+      expect(tester.getSize(find.text('Уведомления')).height, lessThan(40));
+      expect(find.text('Прочитать все'), findsOneWidget);
+      expect(find.text('Новое задание: заявка #28'), findsOneWidget);
+      // the request title is user data and stays as written
+      expect(find.text('Ventilation fan does not work'), findsWidgets);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
   group('login screen layout', () {
     for (final width in [320.0, 360.0, 390.0]) {
       testWidgets(
