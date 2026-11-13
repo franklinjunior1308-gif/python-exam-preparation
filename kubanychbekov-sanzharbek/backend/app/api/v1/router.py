@@ -9,6 +9,7 @@ from app.api.v1 import (
     health,
     inventory,
     maintenance,
+    organization,
     reports,
     requests,
     scheduling,
@@ -32,3 +33,4 @@ api_router.include_router(maintenance.router)
 api_router.include_router(feedback.router)
 api_router.include_router(users.router)
 api_router.include_router(events.router)
+api_router.include_router(organization.router)

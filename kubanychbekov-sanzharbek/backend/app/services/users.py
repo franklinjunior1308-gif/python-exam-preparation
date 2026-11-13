@@ -194,10 +194,20 @@ def update_user(db: Session, ctx: OrgContext, user_id: int, data: UserUpdate) ->
         _ensure_technician_profile(db, ctx.org_id, user.id)
     if before["is_active"] and not new_active:
         # a deactivated member loses access at once: every open session is revoked (AUTH-05)
-        db.execute(
+        revoked = db.execute(
             update(UserSession)
             .where(UserSession.user_id == user.id, UserSession.revoked_at.is_(None))
             .values(revoked_at=func.now())
+            .returning(UserSession.id)
+        )
+        record_audit(
+            db,
+            action="auth.sessions_revoked",
+            object_type="user",
+            object_id=user.id,
+            organization_id=ctx.org_id,
+            actor_user_id=ctx.user.id,
+            after={"count": len(revoked.all()), "reason": "member deactivated"},
         )
     db.flush()
 

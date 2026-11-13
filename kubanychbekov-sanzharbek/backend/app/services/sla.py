@@ -452,3 +452,24 @@ def report(db: Session, ctx: OrgContext, days: int) -> SlaReportOut:
             for name, row in sorted(per_priority.items())
         ],
     )
+
+
+def sort_by_due(
+    db: Session, ctx: OrgContext, rows: list[ServiceRequest], descending: bool
+) -> list[ServiceRequest]:
+    """Order requests by SLA deadline (REQ-04). Requests without a deadline (finished or paused)
+    always come last, whatever the direction."""
+    if not rows:
+        return rows
+    now = datetime.now(UTC)
+    calendar = load_calendar(db, ctx.org_id, ctx.organization.timezone)
+    ids = [r.id for r in rows]
+    pauses = _pauses(db, ids, now)
+    done = _completed_at(db, ids)
+    due = {r.id: compute(r, calendar, pauses[r.id], done.get(r.id), now).due_at for r in rows}
+    with_due = sorted(
+        (r for r in rows if due[r.id] is not None),
+        key=lambda r: (due[r.id], r.id),
+        reverse=descending,
+    )
+    return with_due + [r for r in rows if due[r.id] is None]

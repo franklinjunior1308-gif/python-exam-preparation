@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Query
@@ -39,7 +40,10 @@ def list_(
     property_id: int | None = None,
     sla: Literal["ON_TRACK", "AT_RISK", "OVERDUE"] | None = None,
     q: Annotated[str | None, Query(max_length=200)] = None,
-    sort_by: Annotated[str, Query(pattern="^(created_at|priority|id)$")] = "created_at",
+    technician_id: int | None = None,
+    created_from: date | None = None,
+    created_to: date | None = None,
+    sort_by: Annotated[str, Query(pattern="^(created_at|priority|id|due_at)$")] = "created_at",
     descending: bool = True,
 ) -> RequestPage:
     def fetch(page_no: int, size: int, unpaged: bool = False):
@@ -52,19 +56,27 @@ def list_(
             priority=priority,
             category_id=category_id,
             property_id=property_id,
+            technician_id=technician_id,
+            created_from=created_from,
+            created_to=created_to,
             q=q,
             sort_by=sort_by,
             descending=descending,
             unpaged=unpaged,
         )
 
-    if sla is None:
+    if sla is None and sort_by != "due_at":
         rows, total = fetch(page, page_size)
     else:
-        # the SLA state is computed in working time, not stored: filter first, then page
+        # the SLA state and deadline are computed in working time, not stored: filter and sort
+        # over every match first, then page
         every, _ = fetch(1, 1, unpaged=True)
-        wanted = sla_service.filter_ids_by_state(db, ctx, sla, [r.id for r in every])
-        matching = [r for r in every if r.id in wanted]
+        matching = every
+        if sla is not None:
+            wanted = sla_service.filter_ids_by_state(db, ctx, sla, [r.id for r in every])
+            matching = [r for r in every if r.id in wanted]
+        if sort_by == "due_at":
+            matching = sla_service.sort_by_due(db, ctx, matching, descending)
         total = len(matching)
         first = (page - 1) * page_size
         rows = matching[first : first + page_size]

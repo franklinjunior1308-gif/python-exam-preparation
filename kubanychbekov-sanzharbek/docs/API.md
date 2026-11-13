@@ -202,3 +202,30 @@ GET  /api/v1/assets/{id}/summary   open requests, last completed service, next p
 Errors: `409 asset_code_taken`, `409 asset_retired` (retired equipment cannot be reactivated; new maintenance plans are
 refused), `404` for another organization's property/equipment, `403` for customers and technicians (history is staff-only).
 Audited as `property.created/updated` and `asset.created/updated/retired`.
+
+### Request list filters, reports and organization settings (final audit additions)
+```http
+GET /api/v1/requests?technician_id=4&created_from=2026-11-01&created_to=2026-11-14&sort_by=due_at&descending=false
+```
+`sort_by` is `created_at`, `priority`, `id` or `due_at` (SLA deadline, earliest first; finished or paused requests
+last). Dates are whole days in the organization time zone. `page_size` is at most 100.
+```http
+GET /api/v1/reports/summary?date_from=2026-11-01&date_to=2026-11-14&category_id=2&technician_id=4
+200 {"total", "open", "overdue", "in_progress", "completed_in_period", "by_status", "by_priority", "by_category",
+     "daily": [{"date", "created", "completed"}], "upcoming_visits": [{"request_id", "title", "technician", "start_at", "end_at"}],
+     "technician_load": {"percent", "scheduled_minutes", "available_minutes", "technicians", "method"},
+     "approved_estimates_cents", "approved_estimates_count", "materials_cost_cents", "date_from", "date_to"}
+```
+The period is `days` (default 14) or `date_from`..`date_to`, at most 90 local days (`422 invalid_period`,
+`period_too_long`). `technician_load` is scheduled minutes divided by the working minutes of the active technicians
+(availability minus absences, organization time zone), capped at 100; its `method` field says so. Approved
+estimates are quotes decided in the period, not revenue. `overdue`, `technician_load` and `materials_cost_cents` are
+`null` for customers and technicians, who only see aggregates of their own requests.
+```http
+GET /api/v1/settings/organization -> {"id", "name", "timezone"}
+PUT /api/v1/settings/organization {"name": "AIT Facility", "timezone": "Asia/Bishkek"}   (administrators only)
+```
+Unknown IANA zones are `422`. Stored instants stay in UTC; the zone changes display, working days and SLA from then on.
+Every response carries `X-Request-ID`; request bodies over 1 MiB (11 MiB for photo uploads) are `413 body_too_large`.
+A rework request (`COMPLETED -> REOPENED`) notifies the dispatchers/administrators and the technician who did the work.
+Logout and deactivating a member write `auth.session_revoked` / `auth.sessions_revoked` to the audit feed.

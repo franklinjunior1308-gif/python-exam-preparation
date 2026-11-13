@@ -83,6 +83,15 @@ def login(data: LoginIn, db: DbDep) -> TokenOut:
 @router.post("/auth/logout", status_code=204)
 def logout(auth: AuthDep, db: DbDep) -> Response:
     auth.session.revoked_at = datetime.now(UTC)
+    # AUTH-05: a revoked session is audited (by user, never with the token or the session id)
+    record_audit(
+        db,
+        action="auth.session_revoked",
+        object_type="user",
+        object_id=auth.user.id,
+        actor_user_id=auth.user.id,
+        after={"reason": "logout"},
+    )
     db.commit()
     return Response(status_code=204)
 

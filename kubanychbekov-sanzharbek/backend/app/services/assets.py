@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import OrgContext
 from app.core.errors import AppError
 from app.domain.enums import AssetStatus, AssignmentStatus, RequestStatus, Role
+from app.domain.money import line_total_cents
 from app.models import (
     Asset,
     Assignment,
@@ -230,9 +231,9 @@ def asset_history(db: Session, ctx: OrgContext, asset_id: int) -> list[HistoryEn
         .where(MaterialUsage.request_id.in_(ids))
         .order_by(MaterialUsage.id)
     ):
-        total = round(usage.quantity * usage.unit_price_cents)
+        total = line_total_cents(usage.quantity, usage.unit_price_cents)
         materials[usage.request_id].append(
-            HistoryMaterial(item_name=item_name, quantity=usage.quantity, total_cents=int(total))
+            HistoryMaterial(item_name=item_name, quantity=usage.quantity, total_cents=total)
         )
 
     files: dict[int, list[HistoryFile]] = defaultdict(list)

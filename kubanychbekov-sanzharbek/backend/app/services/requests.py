@@ -1,3 +1,6 @@
+from datetime import date, datetime, time, timedelta
+from zoneinfo import ZoneInfo
+
 from sqlalchemy import String, case, cast, func, or_, select, update
 from sqlalchemy.orm import Session
 
@@ -25,6 +28,7 @@ from app.models import (
 )
 from app.schemas.request import RequestCreate, RequestOut, TriageIn
 from app.services.audit import record_audit
+from app.services.notifications import notify, notify_staff
 
 MAX_PAGE_SIZE = 100
 
@@ -190,6 +194,9 @@ def list_requests(
     sort_by: str,
     descending: bool,
     unpaged: bool = False,
+    technician_id: int | None = None,
+    created_from: date | None = None,
+    created_to: date | None = None,
 ) -> tuple[list[ServiceRequest], int]:
     conditions = visible_conditions(ctx)
     if status:
@@ -200,6 +207,22 @@ def list_requests(
         conditions.append(ServiceRequest.category_id == category_id)
     if property_id:
         conditions.append(ServiceRequest.property_id == property_id)
+    if technician_id:
+        # requests this technician is (or was) booked on, never released ones
+        booked = select(Assignment.request_id).where(
+            Assignment.organization_id == ctx.org_id,
+            Assignment.technician_id == technician_id,
+            Assignment.status.notin_([AssignmentStatus.CANCELED, AssignmentStatus.DECLINED]),
+        )
+        conditions.append(ServiceRequest.id.in_(booked))
+    if created_from or created_to:
+        tz = ZoneInfo(ctx.organization.timezone)  # whole local days, not UTC days
+        if created_from:
+            start = datetime.combine(created_from, time.min, tzinfo=tz)
+            conditions.append(ServiceRequest.created_at >= start)
+        if created_to:
+            end = datetime.combine(created_to + timedelta(days=1), time.min, tzinfo=tz)
+            conditions.append(ServiceRequest.created_at < end)
 
     base = select(ServiceRequest).join(
         Property,
@@ -326,6 +349,39 @@ def transition_request(
         before={"status": source.value},
         after={"status": target.value, "reason": reason},
     )
+    if target == RequestStatus.REOPENED:
+        # COMM-03: staff and the technician who did the work hear about a rework request
+        title = f"Rework requested: request #{req.id}"
+        notify_staff(
+            db,
+            org_id=ctx.org_id,
+            type="request_reopened",
+            title=title,
+            body=(reason or "").strip() or req.title,
+            request_id=req.id,
+            skip_user_id=ctx.user.id,
+        )
+        worker = db.scalar(
+            select(TechnicianProfile.user_id)
+            .join(Assignment, Assignment.technician_id == TechnicianProfile.id)
+            .where(
+                Assignment.request_id == req.id,
+                Assignment.organization_id == ctx.org_id,
+                Assignment.status == AssignmentStatus.COMPLETED,
+            )
+            .order_by(Assignment.id.desc())
+            .limit(1)
+        )
+        if worker is not None:
+            notify(
+                db,
+                org_id=ctx.org_id,
+                user_id=worker,
+                type="request_reopened",
+                title=title,
+                body=(reason or "").strip() or req.title,
+                request_id=req.id,
+            )
     db.commit()
     db.refresh(req)
     return req
