@@ -21,8 +21,8 @@ Rules: the whole project goes **directly into the repository root** (not into `k
 - [x] `docs/AI_USAGE.md` present, describes Claude (main assistant) and ChatGPT (references/consultation).
 - [x] Final demo video with the author's voice: `C:\Users\ASUS ROG STRIX\Videos\FixFlow-demo\FixFlow_EXAM_FINAL_POLISHED.mp4` (4:25, 1920x1080; web create/assign/Smart Assign, Android work, offline queue + restart + sync, completion, rating, tests); timing report in `FIXFLOW_EXAM_SYNC_TABLE_RU.md` next to it.
 - [ ] **Author:** accept the AITS-Lab invitation (before 16:00!) and check that the exam repository appears at 16:00.
-- [ ] **Author:** upload the video to YouTube (Unlisted/Public), wait until processing finishes, check that it opens in a private window; send the URL.
-- [ ] YouTube URL in the first line of `README.md` (replace the `TODO` line), committed locally in the personal repository.
+- [x] Video uploaded to YouTube: https://youtu.be/Un3BcQM8YBU (oEmbed answers 200). Still to check by the author: it opens in a private window and processing is finished (HD).
+- [x] YouTube URL is the first line of `README.md`, committed locally and pushed to the personal backup branch `fixflow`.
 - [ ] No secrets in the tree: `.env` absent (only `.env.example`), no tokens; the APK is not committed.
 - [ ] Dry run of the export (does not touch any repository):
   `powershell -File scripts\export-to-exam-repo.ps1 -Target C:\temp\exam-dry-run -DryRun` -> "required layout: OK", no nested folder, no `.env`, no large files.

@@ -1,6 +1,6 @@
-# FixFlow
+**Demo video (YouTube, ~4.5 min, Russian voice-over): https://youtu.be/Un3BcQM8YBU**
 
-> Demo video: TODO (YouTube link goes here before submission)
+# FixFlow
 
 Field-service management platform: **FastAPI + PostgreSQL** backend, **Next.js** web app (customers,
 dispatchers, administrators) and a **Flutter** Android app for technicians. All three share one
