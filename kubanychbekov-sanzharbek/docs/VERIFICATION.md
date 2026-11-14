@@ -196,3 +196,11 @@ Run in a console window while it was screen-recorded (host: Windows, same machin
 `docker compose --profile test run --rm backend-tests` -> ruff clean, **284 passed, 1 warning in 60.24s** (separate database `fixflow_test`; demo data untouched).
 The demo scenario itself (request #96: created, assigned with Smart Assign, accepted/started/noted/photo/offline note/completed on a real phone, closed with a 5-star rating)
 was recorded the same night; the offline note reached PostgreSQL exactly once.
+
+## Offline restart on a real phone - 2026-11-14 ~14:35 (E2E-04)
+Task #97 (created via API, assigned to technician 1, accepted and started via API; the phone then synchronized it). On the phone (technician tech1.a):
+1. `docker compose stop backend` - the task list and the open task stayed available; the app showed "Offline mode" and "This action needs a server connection".
+2. A note and a photo were added: both appeared with the status "Pending synchronization"; the task card showed 2 queued items.
+3. The app was force-stopped and started again (`am force-stop`, then launch): the queue badge and "Synchronize (2)" were still there.
+4. `docker compose start backend` and "Synchronize": the badge disappeared; `GET /requests/97/notes` and `/attachments` returned exactly 1 note and 1 photo (purpose `after`).
+The same checks were made visible in the final demo video. Not changed: application code.

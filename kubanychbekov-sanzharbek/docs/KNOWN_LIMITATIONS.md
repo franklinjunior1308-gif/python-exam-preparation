@@ -44,11 +44,14 @@ Status of work in progress. Nothing is marked done unless it works end to end.
   server); the web refetches the affected data on each hint and everything after a reconnect (notifications also
   refetch every 30 s). Android does not listen to the stream and refreshes on
   start, pull-to-refresh and sync.
-- **Physical phone: main scenario confirmed, two cases not.** On 2026-11-13 the main technician scenario was run on a real
+- **Physical phone: main scenario and the offline restart confirmed, one case not.** On 2026-11-13 the main technician scenario was run on a real
   Android phone (accept, start, note and photo, offline note and reconnect, completion; see `ANDROID_PHONE_TEST.md`).
-  **NOT VERIFIED on a device:** restarting the app while the offline queue is not empty (E2E-04) and the reassignment
-  conflict (E2E-05); both are covered by automated tests. While the notes list is offline the app shows only the
-  queue, because the server notes are not cached locally (tasks are).
+  On 2026-11-14 the offline restart (E2E-04) was also checked on the same phone: with the server stopped, a note and a photo were queued,
+  the app was force-stopped and started again, the queue still showed 2 items, and after the server was started and "Synchronize" was pressed
+  exactly one note and one photo reached the server (see `VERIFICATION.md`).
+  **NOT VERIFIED on a device:** the reassignment conflict (E2E-05); it is covered by automated tests. While the notes list is offline the app shows only the
+  queue, because the server notes are not cached locally (tasks are). Cosmetic: in the debug build on this phone the offline-queue screen shows
+  Flutter "RIGHT OVERFLOWED" stripes on the status chips and the title wraps (narrow width, large font); the function is not affected.
 - **Risk register (SEC-09):** (1) per-e-mail login lockout can be used to pause an account (see below), mitigation:
   15-minute window, audit of failures, no per-IP limit yet; (2) the Android session token is in app-private storage,
   not the keystore, mitigation: sandboxed storage, token revocable server-side; (3) plain HTTP is allowed for local
