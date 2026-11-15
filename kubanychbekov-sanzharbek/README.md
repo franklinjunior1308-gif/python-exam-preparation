@@ -15,9 +15,7 @@ notes, photos, estimates with approval, inventory with atomic write-off, SLA wit
 maintenance, notifications, customer feedback, audit log, EN/RU web UI, and an Android app with an offline queue.
 Also working: staff and roles, service-category administration, technician skills and availability, properties and
 equipment with service history, reports with filters and technician load, SLA report, organization settings, and live
-updates (server-sent events, the lists refresh without a reload). **Not done / limited:** the Android app does not
-listen to the live stream (it refreshes on start, pull-to-refresh and sync), the full phone scenario is only partly
-confirmed on a real phone (sign-in and task list were), no browser end-to-end tests. Full, honest list: [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
+updates (server-sent events, the lists refresh without a reload). **Not done / limited:** the Android app does not listen to the live stream (API-06; it refreshes on start, pull-to-refresh and sync); the reassignment conflict while offline (E2E-05) is covered by automated tests but was not run on a real phone; there are no browser end-to-end tests for the web; LIFE-05 does not ask the technician to confirm "no materials used" (documented). Checked on a real Android phone: the main technician scenario (accept, start, note and photo, completion) and the offline mode, including the queue surviving an app restart and the later synchronization (exactly one note and one photo reached the server). Full, honest list: [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
 
 ## Requirements and verified versions
 
