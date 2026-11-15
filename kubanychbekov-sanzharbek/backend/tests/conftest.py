@@ -14,6 +14,13 @@ import pytest
 
 TEST_URL = os.environ.get("TEST_DATABASE_URL")
 if TEST_URL:
+    # The backend uses the synchronous psycopg driver. An external runner may pass a URL with
+    # another driver name (for example postgresql+asyncpg://), so keep the host, database and
+    # credentials and only select the driver this project installs.
+    for _prefix in ("postgresql+asyncpg://", "postgresql://"):
+        if TEST_URL.startswith(_prefix):
+            TEST_URL = "postgresql+psycopg://" + TEST_URL[len(_prefix) :]
+            break
     os.environ["DATABASE_URL"] = TEST_URL
 # uploaded test photos go to a throw-away folder, never to the real upload volume
 os.environ["UPLOAD_DIR"] = tempfile.mkdtemp(prefix="fixflow-test-uploads-")
