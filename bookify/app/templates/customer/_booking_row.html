@@ -1,0 +1,16 @@
+{% import "_macros.html" as m %}
+<div class="card" style="padding:18px">
+  <div class="spread">
+    <div>
+      <div class="row"><strong>{{ b.service.name }}</strong>{{ m.status_pill(b.status) }}</div>
+      <div class="muted small">{{ b.business.name }} · with {{ b.staff.name }}</div>
+      <div style="margin-top:6px">📅 {{ b.start_time|localdt(b.business.timezone) }} <span class="muted">· {{ b.duration_minutes|duration }} · {{ b.price_cents|money }}</span></div>
+    </div>
+    <div class="row">
+      <a class="btn btn-secondary btn-sm" href="{{ url_for('customer.confirmation', booking_id=b.id) }}">Details</a>
+      {% if can_cancel(b) %}
+      <form method="post" action="{{ url_for('customer.cancel', booking_id=b.id) }}" data-confirm="Cancel this appointment?">{{ m.csrf() }}<button class="btn btn-danger btn-sm" type="submit">Cancel</button></form>
+      {% endif %}
+    </div>
+  </div>
+</div>

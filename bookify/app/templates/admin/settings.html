@@ -1,0 +1,16 @@
+{% extends "admin/base_admin.html" %}{% import "_macros.html" as m %}
+{% block title %}Business profile{% endblock %}
+{% block content %}
+{% set v = request.form if request.method == 'POST' else {} %}
+<div class="page-head"><h1>Business profile</h1><p class="muted">Public page: <a href="{{ url_for('public.business_profile', slug=business.slug) }}">/b/{{ business.slug }}</a> · Time zone: {{ business.timezone }}</p></div>
+<div class="card" style="max-width:640px">
+<form method="post" novalidate>{{ m.csrf() }}
+  <div class="field"><label for="name">Business name</label><input type="text" id="name" name="name" required maxlength="120" value="{{ v.get('name', business.name) }}"></div>
+  <div class="field"><label for="description">Description</label><textarea id="description" name="description" maxlength="1000">{{ v.get('description', business.description) }}</textarea></div>
+  <div class="form-grid">
+    <div class="field"><label for="address">Address</label><input type="text" id="address" name="address" maxlength="200" value="{{ v.get('address', business.address) }}"></div>
+    <div class="field"><label for="phone">Phone</label><input type="tel" id="phone" name="phone" maxlength="40" value="{{ v.get('phone', business.phone) }}"></div>
+  </div>
+  <button class="btn" type="submit">Save changes</button>
+</form></div>
+{% endblock %}

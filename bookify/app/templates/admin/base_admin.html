@@ -1,0 +1,38 @@
+{% import "_macros.html" as m %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Admin{% endblock %} · Bookify</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+<div class="admin-top"><a class="brand" href="{{ url_for('admin.dashboard') }}">{{ m.logo() }}</a>
+  <button class="btn btn-sm" id="admin-menu-btn" aria-expanded="false" aria-controls="sidebar">Menu</button></div>
+{% set ep = request.endpoint or '' %}
+<div class="admin-shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="{{ url_for('admin.dashboard') }}">{{ m.logo() }}</a>
+    <nav aria-label="Admin">
+      <a href="{{ url_for('admin.dashboard') }}" {% if ep == 'admin.dashboard' %}aria-current="page"{% endif %}>Overview</a>
+      <a href="{{ url_for('admin.calendar') }}" {% if ep == 'admin.calendar' %}aria-current="page"{% endif %}>Calendar</a>
+      <a href="{{ url_for('admin.bookings') }}" {% if ep == 'admin.bookings' %}aria-current="page"{% endif %}>Bookings</a>
+      <a href="{{ url_for('admin.services') }}" {% if ep.startswith('admin.service') %}aria-current="page"{% endif %}>Services</a>
+      <a href="{{ url_for('admin.staff_list') }}" {% if ep.startswith('admin.staff') %}aria-current="page"{% endif %}>Staff &amp; schedules</a>
+      <a href="{{ url_for('admin.settings') }}" {% if ep == 'admin.settings' %}aria-current="page"{% endif %}>Business profile</a>
+      <a href="{{ url_for('customer.notifications') }}" {% if ep == 'customer.notifications' %}aria-current="page"{% endif %}>Notifications{% if unread_count %}<span class="badge-dot">{{ unread_count }}</span>{% endif %}</a>
+      {% if current_user.business %}<a href="{{ url_for('public.business_profile', slug=current_user.business.slug) }}" target="_blank" rel="noopener">View public page ↗</a>{% endif %}
+    </nav>
+    <div class="who">{{ current_user.name }}<br>{{ current_user.email }}</div>
+    <form method="post" action="{{ url_for('auth.logout') }}">{{ m.csrf() }}<button class="linklike" type="submit">Log out</button></form>
+  </aside>
+  <main class="admin-main" id="main">
+    {{ m.flashes() }}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+<script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+</html>

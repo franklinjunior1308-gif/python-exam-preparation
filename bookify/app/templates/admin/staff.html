@@ -1,0 +1,19 @@
+{% extends "admin/base_admin.html" %}{% import "_macros.html" as m %}
+{% block title %}Staff{% endblock %}
+{% block content %}
+<div class="page-head spread"><h1>Staff &amp; schedules</h1><a class="btn" href="{{ url_for('admin.staff_new') }}">+ Add staff member</a></div>
+{% if staff %}<div class="grid cols-2">
+{% for s in staff %}
+<article class="card">
+  <div class="spread"><div class="row"><span class="avatar">{{ s.name[:1] }}</span><div><strong>{{ s.name }}</strong><div class="small muted">{{ s.title or 'Staff' }} · {{ s.user.email }}</div></div></div>
+    <span class="pill {{ 'active' if s.is_active else 'inactive' }}">{{ 'Active' if s.is_active else 'Inactive' }}</span></div>
+  <p class="small" style="margin-top:12px"><strong>Services:</strong> {% for sv in s.services %}{{ sv.name }}{{ ', ' if not loop.last }}{% else %}<span class="muted">none assigned</span>{% endfor %}</p>
+  <p class="small"><strong>Works:</strong> {% for w in s.schedules %}{{ WEEKDAYS[w.weekday][:3] }} {{ w.start_time.strftime('%H:%M') }}–{{ w.end_time.strftime('%H:%M') }}{{ ' · ' if not loop.last }}{% else %}<span class="muted">no schedule set — not bookable</span>{% endfor %}</p>
+  <div class="row">
+    <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.staff_schedule', staff_id=s.id) }}">Schedule</a>
+    <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.staff_edit', staff_id=s.id) }}">Edit</a>
+    <form method="post" action="{{ url_for('admin.staff_toggle', staff_id=s.id) }}" data-confirm="{{ 'Deactivate' if s.is_active else 'Reactivate' }} {{ s.name }}?">{{ m.csrf() }}<button class="btn btn-secondary btn-sm" type="submit">{{ 'Deactivate' if s.is_active else 'Reactivate' }}</button></form>
+  </div>
+</article>{% endfor %}</div>
+{% else %}<div class="card">{{ m.empty('No staff yet', 'Add a staff member, assign services and set their hours.') }}</div>{% endif %}
+{% endblock %}

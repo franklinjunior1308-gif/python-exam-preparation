@@ -1,0 +1,14 @@
+{% extends "admin/base_admin.html" if current_user.is_admin else "base.html" %}{% import "_macros.html" as m %}
+{% block title %}Notifications{% endblock %}
+{% block content %}
+<div class="page-head spread"><h1>Notifications</h1>
+  {% if notifications %}<form method="post" action="{{ url_for('customer.notifications_read') }}">{{ m.csrf() }}<button class="btn btn-secondary btn-sm" type="submit">Mark all as read</button></form>{% endif %}</div>
+<div class="card" style="max-width:760px">
+{% for n in notifications %}
+  <div class="notif {{ '' if n.is_read else 'unread' }}"><span class="dot" aria-hidden="true"></span>
+    <div style="flex:1"><div>{{ n.message }}</div><div class="small muted">{{ n.created_at.strftime('%d %b %Y, %H:%M') }} UTC</div></div>
+    {% if not n.is_read %}<form method="post" action="{{ url_for('customer.notifications_read') }}">{{ m.csrf() }}<input type="hidden" name="id" value="{{ n.id }}"><button class="btn btn-secondary btn-sm" type="submit">{{ 'Open' if n.link else 'Mark read' }}</button></form>{% endif %}
+  </div>
+{% else %}{{ m.empty('No notifications yet', "You'll see booking updates here.") }}{% endfor %}
+</div>
+{% endblock %}

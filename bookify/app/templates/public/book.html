@@ -1,0 +1,40 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% block title %}Book · {{ business.name }}{% endblock %}
+{% block width %}mid{% endblock %}
+{% block content %}
+<div class="page-head"><a href="{{ url_for('public.business_profile', slug=business.slug) }}" class="small">← {{ business.name }}</a>
+  <h1>Book an appointment</h1><p class="muted">Times are shown in {{ business.timezone }}.</p></div>
+{% if not services %}
+  {{ m.empty('Nothing to book yet', 'This business has no active services.') }}
+{% elif not current_user.is_authenticated %}
+  <div class="flash info">Please <a href="{{ url_for('auth.login', next=request.full_path) }}">log in</a> or <a href="{{ url_for('auth.register') }}">create a free account</a> to complete your booking. You can still browse times below.</div>
+{% elif not current_user.is_customer %}
+  <div class="flash info">You are signed in as {{ current_user.role }}. Use a customer account to make bookings.</div>
+{% endif %}
+{% if services %}
+<form method="post" id="booking-form" class="card steps" data-staff='{{ staff|tojson|forceescape }}' data-slots-url="{{ url_for('public.slots', slug=business.slug) }}" novalidate>
+  {{ m.csrf() }}
+  <div class="step"><h3>Choose a service</h3>
+    <label class="skip" for="service_id">Service</label>
+    <select id="service_id" name="service_id" required>
+      <option value="" disabled {% if not selected %}selected{% endif %}>Select a service…</option>
+      {% for s in services %}<option value="{{ s.id }}" data-name="{{ s.name }}" data-price="{{ s.price_cents|money }}" {% if selected == s.id %}selected{% endif %}>{{ s.name }} — {{ s.duration_minutes|duration }} · {{ s.price_cents|money }}</option>{% endfor %}
+    </select></div>
+  <div class="step"><h3>Choose a specialist</h3>
+    <label class="skip" for="staff_id">Staff member</label>
+    <select id="staff_id" name="staff_id"><option value="">Anyone available</option>
+      {% for s in staff %}<option value="{{ s.id }}">{{ s.name }}{% if s.title %} — {{ s.title }}{% endif %}</option>{% endfor %}
+    </select></div>
+  <div class="step"><h3>Pick a date and time</h3>
+    <label class="skip" for="date">Date</label>
+    <input type="date" id="date" min="{{ min_date }}" max="{{ max_date }}" value="{{ min_date }}" style="max-width:240px;margin-bottom:14px">
+    <div id="slots" class="slots" aria-live="polite"></div>
+    <input type="hidden" name="start" id="start">
+  </div>
+  <div class="step"><h3>Anything we should know? <span class="muted small">(optional)</span></h3>
+    <label class="skip" for="notes">Notes</label><textarea id="notes" name="notes" maxlength="500"></textarea></div>
+  <div id="summary" class="summary" hidden></div>
+  <button class="btn btn-lg" type="submit" id="book-submit" disabled>Confirm booking</button>
+</form>
+{% endif %}
+{% endblock %}

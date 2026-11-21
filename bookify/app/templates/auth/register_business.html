@@ -1,0 +1,24 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% block title %}Register your business{% endblock %}
+{% block width %}mid{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>Register your business</h1><p class="muted">Set up your booking page in minutes. You'll be the administrator.</p>
+  <form method="post" novalidate>{{ m.csrf() }}
+    <h3>Business</h3>
+    <div class="form-grid">
+      <div class="field"><label for="business_name">Business name</label><input type="text" id="business_name" name="business_name" value="{{ request.form.get('business_name','') }}" required maxlength="120"></div>
+      <div class="field"><label for="category">Category</label><select id="category" name="category">{% for c in categories %}<option {% if request.form.get('category') == c %}selected{% endif %}>{{ c }}</option>{% endfor %}</select></div>
+      <div class="field"><label for="timezone">Time zone</label><select id="timezone" name="timezone">{% set sel = request.form.get('timezone', default_tz) %}{% for z in timezones %}<option {% if sel == z %}selected{% endif %}>{{ z }}</option>{% endfor %}</select></div>
+    </div>
+    <h3 style="margin-top:8px">Your account</h3>
+    <div class="form-grid">
+      <div class="field"><label for="name">Your name</label><input type="text" id="name" name="name" value="{{ request.form.get('name','') }}" required maxlength="120"></div>
+      <div class="field"><label for="email">Email</label><input type="email" id="email" name="email" value="{{ request.form.get('email','') }}" required></div>
+      <div class="field"><label for="password">Password</label><input type="password" id="password" name="password" autocomplete="new-password" required minlength="8"></div>
+      <div class="field"><label for="confirm_password">Confirm password</label><input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password" required></div>
+    </div>
+    <button class="btn btn-lg" type="submit">Create business</button>
+  </form>
+</div>
+{% endblock %}

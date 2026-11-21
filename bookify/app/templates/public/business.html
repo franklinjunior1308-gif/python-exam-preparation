@@ -1,0 +1,30 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% block title %}{{ business.name }}{% endblock %}
+{% block content %}
+<div class="page-head spread">
+  <div><span class="pill confirmed">{{ business.category }}</span><h1 style="margin-top:8px">{{ business.name }}</h1>
+    <p class="muted">{{ business.description }}</p>
+    <p class="small muted">{% if business.address %}📍 {{ business.address }}{% endif %}{% if business.phone %} · ☎ {{ business.phone }}{% endif %}</p></div>
+  <a class="btn btn-lg" href="{{ url_for('public.book', slug=business.slug) }}">Book now</a>
+</div>
+<div class="grid cols-2" style="grid-template-columns:2fr 1fr">
+  <section class="card" aria-labelledby="svc">
+    <div class="card-head"><h2 id="svc">Services</h2><a href="{{ url_for('public.service_list', slug=business.slug) }}">Full list</a></div>
+    {% for s in services %}
+    <div class="spread" style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div><strong>{{ s.name }}</strong><div class="small muted">{{ s.duration_minutes|duration }}</div></div>
+      <div class="row"><span class="price">{{ s.price_cents|money }}</span>
+        <a class="btn btn-secondary btn-sm" href="{{ url_for('public.book', slug=business.slug, service=s.id) }}">Book</a></div>
+    </div>
+    {% else %}{{ m.empty('No services yet', 'This business has not published any services.') }}{% endfor %}
+  </section>
+  <section class="card" aria-labelledby="team">
+    <h2 id="team">Team</h2>
+    {% for s in staff %}
+    <div class="row" style="padding:8px 0"><span class="avatar">{{ s.name[:1] }}</span>
+      <div><strong>{{ s.name }}</strong><div class="small muted">{{ s.title }}</div></div></div>
+    {% else %}<p class="muted">No staff listed yet.</p>{% endfor %}
+    <p class="small muted" style="margin-top:12px">Times shown in {{ business.timezone }}.</p>
+  </section>
+</div>
+{% endblock %}

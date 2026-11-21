@@ -1,0 +1,21 @@
+{% extends "admin/base_admin.html" %}{% import "_macros.html" as m %}
+{% block title %}{{ 'Edit' if member else 'Add' }} staff{% endblock %}
+{% block content %}
+{% set v = form if form else {} %}
+<div class="page-head"><a class="small" href="{{ url_for('admin.staff_list') }}">← Staff</a><h1>{{ 'Edit staff member' if member else 'Add staff member' }}</h1></div>
+<div class="card" style="max-width:640px">
+<form method="post" novalidate>{{ m.csrf() }}
+  <div class="field"><label for="name">Full name</label><input type="text" id="name" name="name" required maxlength="120" value="{{ v.get('name', member.name if member else '') }}"></div>
+  <div class="field"><label for="title">Job title</label><input type="text" id="title" name="title" maxlength="80" placeholder="e.g. Senior barber" value="{{ v.get('title', member.title if member else '') }}"></div>
+  {% if not member %}
+  <div class="form-grid">
+    <div class="field"><label for="email">Login email</label><input type="email" id="email" name="email" required value="{{ v.get('email', '') }}"></div>
+    <div class="field"><label for="password">Temporary password</label><input type="password" id="password" name="password" required minlength="8" autocomplete="new-password"><div class="hint">Share it securely; at least 8 characters.</div></div>
+  </div>{% endif %}
+  <div class="field"><label>Services this person can perform</label>
+    {% if all_services %}<div class="checks">{% for s in all_services %}
+      <label class="check"><input type="checkbox" name="services" value="{{ s.id }}" {% if (form and s.id|string in form.getlist('services')) or (not form and member and s in member.services) %}checked{% endif %}> {{ s.name }}</label>{% endfor %}</div>
+    {% else %}<p class="muted small">Create a service first.</p>{% endif %}</div>
+  <div class="row"><button class="btn" type="submit">Save</button><a class="btn btn-secondary" href="{{ url_for('admin.staff_list') }}">Cancel</a></div>
+</form></div>
+{% endblock %}

@@ -1,0 +1,7 @@
+﻿{% extends "base.html" %}{% import "_macros.html" as m %}
+{% block title %}Access denied{% endblock %}
+{% block width %}narrow{% endblock %}
+{% block content %}
+<div class="card empty"><div class="ico">{{ m.icon('shield') }}</div><h1>403 — Access denied</h1>
+<p>You don't have permission to view this page.</p><a class="btn" href="{{ url_for('public.home') }}">Back to home</a></div>
+{% endblock %}

@@ -1,0 +1,17 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="page-head spread"><div><h1>Hi {{ current_user.name.split()[0] }} 👋</h1><p class="muted">Your upcoming appointments at a glance.</p></div>
+  <a class="btn" href="{{ url_for('public.businesses') }}">Book new appointment</a></div>
+<div class="grid cols-3" style="margin-bottom:24px">
+  <div class="card stat"><div class="label">Upcoming</div><div class="value">{{ upcoming|length }}</div></div>
+  <div class="card stat"><div class="label">All-time bookings</div><div class="value">{{ total }}</div></div>
+  <div class="card stat"><div class="label">Next appointment</div><div class="value" style="font-size:1.15rem">{% if upcoming %}{{ upcoming[0].start_time|localdt(upcoming[0].business.timezone, '%a %d %b, %H:%M') }}{% else %}—{% endif %}</div></div>
+</div>
+<h2>Upcoming</h2>
+<div class="stack">
+{% for b in upcoming %}{% with b=b %}{% include "customer/_booking_row.html" %}{% endwith %}
+{% else %}<div class="card">{{ m.empty('No upcoming appointments', 'Find a business and book your first appointment.') }}</div>{% endfor %}
+</div>
+<p style="margin-top:20px"><a href="{{ url_for('customer.history') }}">View full booking history →</a></p>
+{% endblock %}

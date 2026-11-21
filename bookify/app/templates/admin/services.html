@@ -1,0 +1,17 @@
+{% extends "admin/base_admin.html" %}{% import "_macros.html" as m %}
+{% block title %}Services{% endblock %}
+{% block content %}
+<div class="page-head spread"><h1>Services</h1><a class="btn" href="{{ url_for('admin.service_new') }}">+ New service</a></div>
+<div class="card">
+{% if services %}<div class="table-wrap"><table><thead><tr><th>Service</th><th>Duration</th><th>Price</th><th>Status</th><th></th></tr></thead><tbody>
+{% for s in services %}<tr>
+  <td><strong>{{ s.name }}</strong><div class="small muted">{{ s.description|truncate(70) }}</div></td>
+  <td>{{ s.duration_minutes|duration }}</td><td>{{ s.price_cents|money }}</td>
+  <td><span class="pill {{ 'active' if s.is_active else 'inactive' }}">{{ 'Active' if s.is_active else 'Inactive' }}</span></td>
+  <td class="right"><div class="row" style="justify-content:flex-end">
+    <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.service_edit', service_id=s.id) }}">Edit</a>
+    <form method="post" action="{{ url_for('admin.service_toggle', service_id=s.id) }}">{{ m.csrf() }}<button class="btn btn-secondary btn-sm" type="submit">{{ 'Deactivate' if s.is_active else 'Activate' }}</button></form></div></td>
+</tr>{% endfor %}</tbody></table></div>
+{% else %}{{ m.empty('No services yet', 'Add your first service so customers can book it.') }}{% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,7 @@
+﻿{% extends "base.html" %}{% import "_macros.html" as m %}
+{% block title %}Session expired{% endblock %}
+{% block width %}narrow{% endblock %}
+{% block content %}
+<div class="card empty"><div class="ico">{{ m.icon('shield') }}</div><h1>Session expired</h1>
+<p>Your form session expired or was invalid. Please go back, refresh the page and try again.</p><a class="btn" href="{{ url_for('public.home') }}">Back to home</a></div>
+{% endblock %}

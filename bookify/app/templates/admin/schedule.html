@@ -1,0 +1,20 @@
+{% extends "admin/base_admin.html" %}{% import "_macros.html" as m %}
+{% block title %}Schedule · {{ member.name }}{% endblock %}
+{% block content %}
+<div class="page-head"><a class="small" href="{{ url_for('admin.staff_list') }}">← Staff</a><h1>Weekly schedule — {{ member.name }}</h1>
+  <p class="muted">Hours are in the business time zone ({{ member.business.timezone }}). Unticked days are days off.</p></div>
+<div class="card" style="max-width:640px">
+<form method="post" novalidate>{{ m.csrf() }}
+{% for day in WEEKDAYS %}{% set i = loop.index0 %}{% set w = current.get(i) %}
+  {% set on = (form.get('work_' ~ i) if form else (w is not none)) %}
+  <div class="spread" style="padding:10px 0;border-bottom:1px solid var(--border)">
+    <label class="check" style="min-width:150px"><input type="checkbox" name="work_{{ i }}" value="1" {% if on %}checked{% endif %}> {{ day }}</label>
+    <div class="row">
+      <label class="skip" for="start_{{ i }}">{{ day }} start</label><input type="time" id="start_{{ i }}" name="start_{{ i }}" style="width:130px" value="{{ form.get('start_' ~ i) if form else (w.start_time.strftime('%H:%M') if w else defaults[0].strftime('%H:%M')) }}">
+      <span>to</span>
+      <label class="skip" for="end_{{ i }}">{{ day }} end</label><input type="time" id="end_{{ i }}" name="end_{{ i }}" style="width:130px" value="{{ form.get('end_' ~ i) if form else (w.end_time.strftime('%H:%M') if w else defaults[1].strftime('%H:%M')) }}">
+    </div></div>
+{% endfor %}
+  <div class="row" style="margin-top:18px"><button class="btn" type="submit">Save schedule</button><a class="btn btn-secondary" href="{{ url_for('admin.staff_list') }}">Cancel</a></div>
+</form></div>
+{% endblock %}

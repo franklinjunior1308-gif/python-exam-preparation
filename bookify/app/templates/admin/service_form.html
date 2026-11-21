@@ -1,0 +1,16 @@
+{% extends "admin/base_admin.html" %}{% import "_macros.html" as m %}
+{% block title %}{{ 'Edit' if service else 'New' }} service{% endblock %}
+{% block content %}
+{% set v = form if form else {} %}
+<div class="page-head"><a class="small" href="{{ url_for('admin.services') }}">← Services</a><h1>{{ 'Edit service' if service else 'New service' }}</h1></div>
+<div class="card" style="max-width:640px">
+<form method="post" novalidate>{{ m.csrf() }}
+  <div class="field"><label for="name">Name</label><input type="text" id="name" name="name" required maxlength="120" value="{{ v.get('name', service.name if service else '') }}"></div>
+  <div class="field"><label for="description">Description</label><textarea id="description" name="description" maxlength="1000">{{ v.get('description', service.description if service else '') }}</textarea></div>
+  <div class="form-grid">
+    <div class="field"><label for="price">Price ($)</label><input type="number" id="price" name="price" min="0" step="0.01" required value="{{ v.get('price', '%.2f' % service.price if service else '') }}"></div>
+    <div class="field"><label for="duration">Duration (minutes)</label><input type="number" id="duration" name="duration" min="5" max="600" step="5" required value="{{ v.get('duration', service.duration_minutes if service else 30) }}"></div>
+  </div>
+  <div class="row"><button class="btn" type="submit">Save service</button><a class="btn btn-secondary" href="{{ url_for('admin.services') }}">Cancel</a></div>
+</form></div>
+{% endblock %}

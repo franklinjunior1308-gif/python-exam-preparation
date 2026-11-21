@@ -1,0 +1,7 @@
+﻿{% extends "base.html" %}{% import "_macros.html" as m %}
+{% block title %}Page not found{% endblock %}
+{% block width %}narrow{% endblock %}
+{% block content %}
+<div class="card empty"><div class="ico">{{ m.icon('calendar') }}</div><h1>404 — Page not found</h1>
+<p>We couldn't find what you were looking for.</p><a class="btn" href="{{ url_for('public.home') }}">Back to home</a></div>
+{% endblock %}

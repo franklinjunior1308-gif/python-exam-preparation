@@ -1,0 +1,25 @@
+{% extends "admin/base_admin.html" %}{% import "_macros.html" as m %}
+{% block title %}Calendar{% endblock %}
+{% block content %}
+<div class="page-head spread"><div><h1>Appointment calendar</h1><p class="muted">Week of {{ monday.strftime('%d %b %Y') }} · {{ business.timezone }}</p></div>
+  <div class="row">
+    <form method="get" class="row"><label class="skip" for="staff_id">Staff</label>
+      <select id="staff_id" name="staff_id" onchange="this.form.submit()" style="width:auto"><option value="">All staff</option>
+        {% for s in staff %}<option value="{{ s.id }}" {% if staff_id == s.id %}selected{% endif %}>{{ s.name }}</option>{% endfor %}</select>
+      <input type="hidden" name="week" value="{{ monday.isoformat() }}"></form>
+    <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.calendar', week=prev_week.isoformat(), staff_id=staff_id) }}">← Prev</a>
+    <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.calendar', staff_id=staff_id) }}">Today</a>
+    <a class="btn btn-secondary btn-sm" href="{{ url_for('admin.calendar', week=next_week.isoformat(), staff_id=staff_id) }}">Next →</a>
+  </div></div>
+<div class="cal">
+{% for day, items in days.items() %}
+  <section class="cal-day {{ 'today' if day == today }}" aria-label="{{ day.strftime('%A %d %B') }}">
+    <h4>{{ day.strftime('%a %d %b') }}</h4>
+    {% for b in items %}
+    <div class="cal-ev {{ b.status }}"><b>{{ b.start_time|localdt(business.timezone, '%H:%M') }} · {{ b.service.name }}</b>{{ b.customer.name }} → {{ b.staff.name }}
+      {% if b.status == 'confirmed' %}<form method="post" action="{{ url_for('admin.booking_cancel', booking_id=b.id) }}" data-confirm="Cancel this booking and notify the customer?" style="margin-top:4px">{{ m.csrf() }}<button class="btn btn-danger btn-sm" type="submit" style="min-height:28px;padding:2px 8px">Cancel</button></form>{% endif %}</div>
+    {% else %}<span class="muted small">—</span>{% endfor %}
+  </section>
+{% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% block title %}Booking history{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Booking history</h1></div>
+<div class="row" style="margin-bottom:16px">
+  {% for key, label in [('', 'All'), ('confirmed', 'Upcoming / confirmed'), ('completed', 'Completed'), ('cancelled', 'Cancelled')] %}
+  <a class="btn btn-sm {{ '' if status == key else 'btn-secondary' }}" href="{{ url_for('customer.history', status=key) if key else url_for('customer.history') }}">{{ label }}</a>
+  {% endfor %}
+</div>
+<div class="stack">
+{% for b in bookings %}{% include "customer/_booking_row.html" %}
+{% else %}<div class="card">{{ m.empty('No bookings here', 'Your bookings will appear in this list.') }}</div>{% endfor %}
+</div>
+{% endblock %}

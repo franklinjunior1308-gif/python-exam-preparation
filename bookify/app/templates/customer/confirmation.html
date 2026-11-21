@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% block title %}Booking confirmation{% endblock %}
+{% block width %}narrow{% endblock %}
+{% block content %}
+{% set b = booking %}
+<div class="card" style="text-align:center">
+  <div class="success-ring">{{ m.icon('check') }}</div>
+  {% if b.status == 'cancelled' %}<h1>Booking cancelled</h1>{% else %}<h1>You're booked!</h1><p class="muted">Booking #{{ b.id }} is {{ b.status }}.</p>{% endif %}
+  <dl class="dl" style="text-align:left;margin:20px 0">
+    <dt>Business</dt><dd>{{ b.business.name }}</dd>
+    <dt>Service</dt><dd>{{ b.service.name }}</dd>
+    <dt>With</dt><dd>{{ b.staff.name }}</dd>
+    <dt>When</dt><dd>{{ b.start_time|localdt(b.business.timezone) }}</dd>
+    <dt>Duration</dt><dd>{{ b.duration_minutes|duration }}</dd>
+    <dt>Price</dt><dd>{{ b.price_cents|money }} <span class="muted small">(pay at the venue)</span></dd>
+    {% if b.business.address %}<dt>Where</dt><dd>{{ b.business.address }}</dd>{% endif %}
+  </dl>
+  <p class="small muted">Free cancellation up to 2 hours before your appointment.</p>
+  <div class="row" style="justify-content:center"><a class="btn" href="{{ url_for('customer.history') }}">My bookings</a>
+    <a class="btn btn-secondary" href="{{ url_for('public.business_profile', slug=b.business.slug) }}">Back to {{ b.business.name }}</a></div>
+</div>
+{% endblock %}

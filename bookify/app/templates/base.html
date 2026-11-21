@@ -1,0 +1,45 @@
+{% import "_macros.html" as m %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Bookify{% endblock %} · Bookify</title>
+  <meta name="description" content="Bookify — online booking for barbershops, salons, tutors and service professionals.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="topnav">
+  <div class="container">
+    <a class="brand" href="{{ url_for('public.home') }}">{{ m.logo() }}</a>
+    <button class="btn btn-secondary btn-sm menu-btn" id="menu-btn" aria-expanded="false" aria-controls="navlinks">Menu</button>
+    <nav class="navlinks" id="navlinks" aria-label="Main">
+      <a href="{{ url_for('public.businesses') }}">Find a business</a>
+      {% if current_user.is_authenticated %}
+        {% if current_user.is_admin %}<a href="{{ url_for('admin.dashboard') }}">Admin</a>
+        {% elif current_user.is_staff_member %}<a href="{{ url_for('staff.dashboard') }}">My schedule</a>
+        {% else %}<a href="{{ url_for('customer.dashboard') }}">Dashboard</a><a href="{{ url_for('customer.history') }}">My bookings</a>{% endif %}
+        <a href="{{ url_for('customer.notifications') }}">Notifications{% if unread_count %}<span class="badge-dot" aria-label="{{ unread_count }} unread">{{ unread_count }}</span>{% endif %}</a>
+        <form method="post" action="{{ url_for('auth.logout') }}">{{ m.csrf() }}<button class="linklike" type="submit">Log out</button></form>
+      {% else %}
+        <a href="{{ url_for('auth.register_business') }}">For businesses</a>
+        <a href="{{ url_for('auth.login') }}">Log in</a>
+        <a class="btn btn-sm" href="{{ url_for('auth.register') }}">Sign up</a>
+      {% endif %}
+    </nav>
+  </div>
+</header>
+{% block hero %}{% endblock %}
+<main id="main" class="page">
+  <div class="container {% block width %}{% endblock %}">
+    {{ m.flashes() }}
+    {% block content %}{% endblock %}
+  </div>
+</main>
+<footer class="site"><div class="container spread"><span>© Bookify — demo MVP. Payments are not processed.</span><span>Made for small businesses.</span></div></footer>
+<script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{% extends "admin/base_admin.html" %}{% import "_macros.html" as m %}
+{% block title %}Overview{% endblock %}
+{% block content %}
+<div class="page-head spread"><div><h1>{{ business.name }}</h1><p class="muted">Business overview</p></div>
+  <a class="btn btn-secondary" href="{{ url_for('public.business_profile', slug=business.slug) }}" target="_blank" rel="noopener">View public page ↗</a></div>
+{% if not setup_done %}
+<div class="card" style="background:var(--primary-soft);border-color:#C7D2FE;margin-bottom:20px">
+  <h3>Finish setting up</h3>
+  <p class="small">To accept bookings you need at least one <a href="{{ url_for('admin.services') }}">service</a>, one <a href="{{ url_for('admin.staff_list') }}">staff member</a> assigned to it, and a working schedule.</p></div>
+{% endif %}
+<div class="grid cols-4">
+  <div class="card stat"><div class="label">Upcoming bookings</div><div class="value">{{ stats.confirmed }}</div><div class="sub">worth {{ stats.upcoming_value|money }}</div></div>
+  <div class="card stat"><div class="label">Completed</div><div class="value">{{ stats.completed }}</div><div class="sub">revenue {{ stats.revenue|money }}</div></div>
+  <div class="card stat"><div class="label">Cancelled</div><div class="value">{{ stats.cancelled }}</div><div class="sub">of {{ stats.total }} total</div></div>
+  <div class="card stat"><div class="label">Active services / staff</div><div class="value">{{ stats.services }} / {{ stats.staff }}</div></div>
+</div>
+<div class="grid cols-2" style="margin-top:20px;grid-template-columns:2fr 1fr">
+  <section class="card"><div class="card-head"><h2>Next appointments</h2><a href="{{ url_for('admin.calendar') }}">Open calendar</a></div>
+    {% if upcoming %}<div class="table-wrap"><table><thead><tr><th>When</th><th>Service</th><th>Customer</th><th>Staff</th></tr></thead><tbody>
+      {% for b in upcoming %}<tr><td>{{ b.start_time|localdt(business.timezone, '%a %d %b, %H:%M') }}</td><td>{{ b.service.name }}</td><td>{{ b.customer.name }}</td><td>{{ b.staff.name }}</td></tr>{% endfor %}
+    </tbody></table></div>{% else %}{{ m.empty('No upcoming bookings', 'Share your public page to start receiving bookings.') }}{% endif %}</section>
+  <section class="card"><h2>Popular services</h2>
+    {% for name, n in top %}<div class="spread" style="padding:8px 0;border-bottom:1px solid var(--border)"><span>{{ name }}</span><strong>{{ n }}</strong></div>
+    {% else %}<p class="muted">No data yet.</p>{% endfor %}</section>
+</div>
+{% endblock %}

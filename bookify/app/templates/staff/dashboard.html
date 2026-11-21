@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% import "_macros.html" as m %}
+{% block title %}My schedule{% endblock %}
+{% macro row(b, finish) %}
+<div class="card" style="padding:18px"><div class="spread">
+  <div><div class="row"><strong>{{ b.service.name }}</strong>{{ m.status_pill(b.status) }}</div>
+    <div class="muted small">Customer: {{ b.customer.name }}{% if b.notes %} · “{{ b.notes }}”{% endif %}</div>
+    <div style="margin-top:6px">🕒 {{ b.start_time|localdt(tz) }} <span class="muted">· {{ b.duration_minutes|duration }}</span></div></div>
+  {% if finish %}<form method="post" action="{{ url_for('staff.complete', booking_id=b.id) }}">{{ m.csrf() }}<button class="btn btn-success btn-sm" type="submit">Mark finished</button></form>{% endif %}
+</div></div>
+{% endmacro %}
+{% block content %}
+<div class="page-head"><h1>My appointments</h1><p class="muted">{{ me.business.name }} · times in {{ tz }}</p></div>
+{% if needs_finish %}<h2>Needs attention</h2><p class="muted small">These appointments have passed — mark them as finished.</p>
+<div class="stack" style="margin-bottom:28px">{% for b in needs_finish %}{{ row(b, true) }}{% endfor %}</div>{% endif %}
+<h2>Upcoming</h2>
+<div class="stack" style="margin-bottom:28px">
+{% for b in upcoming %}{{ row(b, b.start_time <= now) }}
+{% else %}<div class="card">{{ m.empty('No upcoming appointments', 'New bookings will show up here.') }}</div>{% endfor %}</div>
+{% if recent %}<h2>Recently completed</h2><div class="stack">{% for b in recent %}{{ row(b, false) }}{% endfor %}</div>{% endif %}
+{% endblock %}
